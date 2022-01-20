@@ -3,22 +3,45 @@
 #include <string.h>
 
 #define LENGTH_LINE 81
+#define LENGTH_MACRO 6
+
+
+typedef struct node
+{
+        char macro_name[81];
+        char macro_lines[6][81];
+        struct node *next;
+}node;
+
 
 void macro(char *[]);
-
 /*create_new_macro_file - is a function that gets a file name and change the ending of the name depends on the ending name given. */
 char *create_new_macro_file(char *, char *, int);
-
 int name_check(char *, char *, int *);
 void skipSpaceTab(char *);
 char *save_name(char *);
 void removeSpace(char *);
+void insert_end(node** root, node* new_node, char* name, char macro_table[6][81], int i);
+
+
+
+
+
+
 
 int main(int argc, char *argv[])
 {
 	macro(argv);
 	return 0;
+    
+
 }
+
+
+
+
+
+
 
 /*This function gets a FILE POINTER ! , DONT FORGET TO CHANGE $$ */
 void macro(char *argv[])
@@ -28,14 +51,20 @@ void macro(char *argv[])
 	char line[LENGTH_LINE]; /*to store each line in the file */
 	char *linePointer; 
 	int lettersCounter=0;
-	char *macro_table[LENGTH_LINE]; /*macro table - to store macro name and the lines for the macro */
-	int indx_table=0;
+	char macro_table[LENGTH_MACRO][LENGTH_LINE]; /*macro table - to store macro name and the lines for the macro */
+	int i=0;
 	int macro_signal=0; /*flag to know if we are inside a macro */
-	char macro_array[LENGTH_LINE];
-	int indx_macro_array=0;
+    char macro_name1[LENGTH_LINE];
+	node* new_node = (node*)malloc(sizeof(node));
+    node* root = (node*)malloc(sizeof(node));
+            if(root == NULL)
+            {
+                exit(0);
+            }
+            root->next = NULL;
 
 	/*open file named .as and point to it.  */
-	if(!(fp= fopen(create_new_macro_file(argv[1], ".as",nameSize ), "r"))){
+	if(!(fp= fopen(create_new_macro_file(argv[1], ".as",nameSize ), "r"))){ /**/
 		printf("\nError: cannot open file name: %s\n",argv[1]); 
 		return;
 	}
@@ -55,11 +84,13 @@ void macro(char *argv[])
 			/*skipping tabs and spaces */
 			skipSpaceTab(linePointer);
 
+            
+
 			/*if the next char is not the beginning of "macro" we will copy the whole line to the new file  */
 			if(*(linePointer) != 'm')
 			{
 				fputs(line, newfp);
-				break;
+				continue;
 			}
 			
 			/*The current char must be 'm' */
@@ -67,7 +98,7 @@ void macro(char *argv[])
 			if(!( name_check(linePointer, "macro", &lettersCounter) ))
 			{
 				fputs(line, newfp);
-				break;
+				continue;
 			}
 			/*now the word must be macro so we updating the pointer to be after macro name. */
 			linePointer += lettersCounter;
@@ -77,7 +108,7 @@ void macro(char *argv[])
 			if(*(linePointer) != ' ')
 			{
 				fputs(line, newfp);
-				break;
+				continue;
 			}
 			
 			/*skipping spaces and tabs */
@@ -87,36 +118,48 @@ void macro(char *argv[])
 			if(*(linePointer) == '\n' )
 			{
 				fputs(line, newfp);
-				break;
+				continue;
 			}
 			
 			/*saving the name of the macro */
-			macro_table[indx_table++] = save_name(linePointer);
+            
+			strcpy(macro_name1,save_name(linePointer));
+			
+
 			macro_signal = 1;
-			printf("\n%s, ",macro_table[indx_table]);
+
+            printf("line pointer:%s\nmacro name1:%s\n\n",linePointer,macro_name1);
+            printf("line pointer:%d\nmacro name1:%d\n\n",(int)strlen(linePointer),(int)strlen(macro_name1));          		
 		}
 		else
 		{
 			/*we are inside the box of macro */
 			/*skipping spaces and tabs */
+            linePointer = line;
 			skipSpaceTab(linePointer);
+            lettersCounter = 0;
 			if(!( name_check(linePointer, "endm", &lettersCounter) ))
 			{
-				macro_table[indx_table++] = line;
-				break;
+				strcpy(macro_table[i],line);
+				i++;
+				continue;
 			}
+
+            insert_end(&root, new_node, macro_name1, macro_table,i);
+
 			lettersCounter=0;
 			macro_signal = 0;
-			macro_table[indx_table] = '\0';
-
-			macro_array[macro_indx_array++] = macro_table[0];
-
-		}
-		
+		}	
 	}
-	
-	
+    free(root);
+	free(new_node);
 }
+
+
+
+
+
+
 
 
 char * save_name(char *linePointer)
@@ -137,7 +180,15 @@ char * save_name(char *linePointer)
 	}
 	name[++j] = '\0';
 	return name;
+    free(name);
 }
+
+
+
+
+
+
+
 
 int name_check(char *linePointer, char *name, int *lettersCounter)
 {
@@ -153,11 +204,17 @@ int name_check(char *linePointer, char *name, int *lettersCounter)
 
 	if(strncmp(linePointer, name, strlen(name) ) == 0 )
 	{
-		printf("\nequal %d, %s", *lettersCounter, linePointer);
 		return 1;
 	}
 	return 0;
 }
+
+
+
+
+
+
+
 
 void skipSpaceTab(char *p)
 {
@@ -173,6 +230,13 @@ void skipSpaceTab(char *p)
 	}
 }
 
+
+
+
+
+
+
+
 void removeSpace(char *linePointer)
 {
 	int i;
@@ -184,6 +248,11 @@ void removeSpace(char *linePointer)
 	}
 	linePointer[count] = '\0';
 }
+
+
+
+
+
 
 
 char *create_new_macro_file(char *oldFileName, char *ending, int originalLength)
@@ -198,5 +267,38 @@ char *create_new_macro_file(char *oldFileName, char *ending, int originalLength)
 	
 	strcat(oldFileName, ending);
 	return oldFileName;
+}
+
+
+
+
+void insert_end(node** root, node* new_node, char* name, char macro_table[6][81], int i)
+{
+    int j;
+    /*create new node*/
+	node* curr;
+
+    /*point new node to the end*/
+    new_node->next = NULL;
+
+    /*assighn data to new node*/
+    if((int)strlen(new_node->macro_name) == 0)
+        strcpy (new_node->macro_name , name);
+
+    for(j = 0; j < i; j++)
+    {
+        strcpy(new_node->macro_lines[j] , macro_table[j]);
+    }
+
+
+	curr = *root;
+    while (curr->next != NULL)
+    {
+        curr = curr->next;
+    }
+
+    curr->next = new_node;
+
+	
 }
 
