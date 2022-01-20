@@ -120,7 +120,7 @@ void macro(char *argv[])
 			}
 
 			/*create node with the macro information*/
-            insert_end(&root, new_node, macro_name1, macro_table,i);
+            add_node(&root, new_node, macro_name1, macro_table,i);
 
 			lettersCounter=0;
 			macro_signal = 0;
@@ -163,11 +163,6 @@ char * save_name(char *linePointer)
 
 
 
-
-
-
-
-
 int name_check(char *linePointer, char *name, int *lettersCounter)
 {
 	int j=0;
@@ -190,11 +185,6 @@ int name_check(char *linePointer, char *name, int *lettersCounter)
 
 
 
-
-
-
-
-
 void skipSpaceTab(char *p)
 {
 	while((*p) != '\n')
@@ -211,11 +201,6 @@ void skipSpaceTab(char *p)
 
 
 
-
-
-
-
-
 void removeSpace(char *linePointer)
 {
 	int i;
@@ -225,12 +210,8 @@ void removeSpace(char *linePointer)
 		if(linePointer[i] != ' ' && linePointer[i] != '\t' && linePointer[i] != '\n')
 			linePointer[count++] = linePointer[i];
 	}
-	linePointer[count] = '\0';
+	linePointer[count] = '\0'; /*to finish the string*/
 }
-
-
-
-
 
 
 
@@ -245,13 +226,13 @@ char *create_new_macro_file(char *oldFileName, char *ending, int originalLength)
 	}
 	
 	strcat(oldFileName, ending);
+
 	return oldFileName;
 }
 
 
 
-
-void insert_end(node** root, node* new_node, char* name, char macro_table[6][81], int i)
+void add_node(node** root, node* new_node, char* name, char macro_table[6][81], int i)
 {
     int j;
     /*create new node*/

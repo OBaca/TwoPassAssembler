@@ -31,5 +31,5 @@ char *save_name(char *);
 /*removeSpace - is a function that remove all the white spaces from the string*/
 void removeSpace(char *);
 
-/*insert_end - is a function that insert a node(macro struct) to the end of the list*/
-void insert_end(node** root, node* new_node, char* name, char macro_table[6][81], int i);
+/*add_node - is a function that insert a node(macro struct) to the end of the list*/
+void add_node(node** root, node* new_node, char* name, char macro_table[6][81], int i);
