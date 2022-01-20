@@ -1,45 +1,13 @@
-#include <stdio.h> /*delete later for debug */ 
-#include <stdlib.h>
-#include <string.h>
-
-#define LENGTH_LINE 81
-#define LENGTH_MACRO 6
-
-
-typedef struct node
-{
-        char macro_name[81];
-        char macro_lines[6][81];
-        struct node *next;
-}node;
-
-
-void macro(char *[]);
-/*create_new_macro_file - is a function that gets a file name and change the ending of the name depends on the ending name given. */
-char *create_new_macro_file(char *, char *, int);
-int name_check(char *, char *, int *);
-void skipSpaceTab(char *);
-char *save_name(char *);
-void removeSpace(char *);
-void insert_end(node** root, node* new_node, char* name, char macro_table[6][81], int i);
-
-
-
-
-
-
+#include "macro.h"
 
 int main(int argc, char *argv[])
 {
 	macro(argv);
+	
 	return 0;
     
 
 }
-
-
-
-
 
 
 
@@ -50,20 +18,24 @@ void macro(char *argv[])
 	int nameSize = strlen(argv[1]); /*the length of the file name */
 	char line[LENGTH_LINE]; /*to store each line in the file */
 	char *linePointer; 
-	int lettersCounter=0;
+	int lettersCounter=0; 
 	char macro_table[LENGTH_MACRO][LENGTH_LINE]; /*macro table - to store macro name and the lines for the macro */
-	int i=0;
+	int i=0; /*number of lines in a macro*/
 	int macro_signal=0; /*flag to know if we are inside a macro */
-    char macro_name1[LENGTH_LINE];
+    char macro_name1[LENGTH_LINE]; /*to store the macro name*/
+
+	/*creating a linked list to save macro information*/
 	node* new_node = (node*)malloc(sizeof(node));
     node* root = (node*)malloc(sizeof(node));
-            if(root == NULL)
+            if(root == NULL || new_node == NULL)
             {
+				printf("memmory allocation failed, abort");
                 exit(0);
             }
             root->next = NULL;
+			new_node->next = NULL;
 
-	/*open file named .as and point to it.  */
+	/*open file named .as and point to it. */
 	if(!(fp= fopen(create_new_macro_file(argv[1], ".as",nameSize ), "r"))){ /**/
 		printf("\nError: cannot open file name: %s\n",argv[1]); 
 		return;
@@ -79,8 +51,9 @@ void macro(char *argv[])
 	/*reading through the lines in the file */
 	while(fgets(line,LENGTH_LINE , fp) != NULL)	
 	{
-		if(!macro_signal){
+		if(!macro_signal){ /*if we are not in a macro*/
 			linePointer = line;
+
 			/*skipping tabs and spaces */
 			skipSpaceTab(linePointer);
 
@@ -122,29 +95,31 @@ void macro(char *argv[])
 			}
 			
 			/*saving the name of the macro */
-            
 			strcpy(macro_name1,save_name(linePointer));
 			
-
-			macro_signal = 1;
-
-            printf("line pointer:%s\nmacro name1:%s\n\n",linePointer,macro_name1);
-            printf("line pointer:%d\nmacro name1:%d\n\n",(int)strlen(linePointer),(int)strlen(macro_name1));          		
+			/*we are now inside a macro*/
+			macro_signal = 1;          		
 		}
+		/*if we are insied a macro*/
 		else
 		{
-			/*we are inside the box of macro */
-			/*skipping spaces and tabs */
+			
             linePointer = line;
+			/*skipping spaces and tabs */
 			skipSpaceTab(linePointer);
+			/*reset the index*/
             lettersCounter = 0;
-			if(!( name_check(linePointer, "endm", &lettersCounter) ))
+			
+			/*check for end of the macro*/
+			if(!( name_check(linePointer, "endm", &lettersCounter) )) 
 			{
+				/*not the end, save line to the macro table*/
 				strcpy(macro_table[i],line);
 				i++;
 				continue;
 			}
 
+			/*create node with the macro information*/
             insert_end(&root, new_node, macro_name1, macro_table,i);
 
 			lettersCounter=0;
@@ -157,23 +132,26 @@ void macro(char *argv[])
 
 
 
-
-
-
-
-
 char * save_name(char *linePointer)
 {
 	int j;
 	int name_length = 0;
 	char *name;
+
+	/*count the length of the current word in line*/
 	for(j=0 ; linePointer[j] && linePointer[j] != '\n' && linePointer[j] != ' ' && linePointer[j] != '\t'; j++ )
 	{
 		name_length++;
 	}
 
 	name = (char *)malloc(sizeof(char) * (name_length+1));
+	if(name == NULL)
+	{
+		printf("memmory allocation failed, abort");
+                exit(0);
+	}
 
+	/*copy the word to a "name" string*/
 	for(j=0; j < name_length ; j++)
 	{
 		name[j] = linePointer[j];
@@ -194,6 +172,7 @@ int name_check(char *linePointer, char *name, int *lettersCounter)
 {
 	int j=0;
 	
+	/*count chars of the word for quick compare*/
 	while((linePointer[j] >= 'A' && linePointer[j] <= 'Z') || (linePointer[j] >= 'a' && linePointer[j] <= 'z') || (linePointer[j] >= 0 && linePointer[j] <= 9) || linePointer[j] == '#' )
 	{
 		(*lettersCounter)++;
