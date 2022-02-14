@@ -52,3 +52,18 @@ void label_exist(char *label_name, int *error)
         }
     }
 }
+
+int string_is_valid(char *linePointer, int *error, int line_counter){
+    if( (*linePointer < 32 && *linePointer != 9) ||  *linePointer > 126 )
+            {
+                if(*linePointer == '\n' || *linePointer == '\0')
+                    printf("Error: Missing closing quotation marks in a string command, In line: %d", line_counter);
+                else
+                    printf("\nError: Not a valid ascii char, In line: %d", line_counter);
+                
+                *error=1;
+                return 0;
+            }
+    return 1;
+} 
+

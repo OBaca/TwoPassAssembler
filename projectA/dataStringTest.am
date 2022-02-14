@@ -1,0 +1,3 @@
+END:	.string "asd"
+	LOOP: 	.string "123"
+	.string "asdzx"

@@ -11,19 +11,23 @@ LOOP: 		prn #48
  		lea STR, r6
  		m1
  		sub r1, r4
-		macro m2
- 			lea STR, r6
-			 mov r3, W
-			 bne END
-			 dec k
-		endm 
  		bne END
+		macro m231423
+			sub r2, r3 ---m23232
+		endm
+		macro         m321
+			lol
+			bitch
+			fuck
+			what the fuck
+		endm
  		cmp val1, #-6
  		bne END[r15]
+		 m321
 		 dec K
-		 m2
 .entry MAIN
  		sub LOOP[r10] ,r14
+		        m231423
 END:		 stop
 STR: 		.string “abcd”
 LIST: 		.data 6, -9

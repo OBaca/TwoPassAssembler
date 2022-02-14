@@ -1,6 +1,5 @@
 
 
-
 /*define of struct node to store a macro name and his lines*/
 typedef struct macro_table
 {
@@ -30,5 +29,16 @@ typedef struct line
 	unsigned int signal:16;	
 }line;
 
+typedef struct head_of_list
+{
+        macro_table *head;
+}head_of_list;
 
 
+
+
+/*create_list, creates a linked list */
+void create_list();
+
+/*add_data_parameter, adding a data line node */
+line *add_data_parameter(int );

@@ -3,8 +3,7 @@
 #include "data_structure.h"
 
 
-macro_table* head=NULL;
-
+head_of_list *list = NULL;
 
 /*This function gets a FILE POINTER ! , DONT FORGET TO CHANGE $$ */
 void macro(char *file)
@@ -17,9 +16,11 @@ void macro(char *file)
 	char temp_macro_table[LENGTH_MACRO][LENGTH_LINE]; /*macro table - to store macro name and the lines for the macro */
 	int num_of_macro_lines=0; /*number of lines in a macro*/
 	int macro_signal=0; /*flag to know if we are inside a macro */
-    	char macro_name1[LENGTH_LINE]; /*to store the macro name*/
+    char macro_name1[LENGTH_LINE]; /*to store the macro name*/
 	int skip_macro_name; /*flag to know if we skip the macro name */
 	int nameLength = strlen(file); /*the length of the file name */
+
+	create_list(); /*creates a linked list */
 
 	/*open file named .as and point to it. */
 	if(!(fp= fopen(create_new_macro_file(file, ".as",nameLength ), "r"))){ 
@@ -106,7 +107,7 @@ void macro(char *file)
 				if(!( name_check(linePointer, "endm", &lettersCounter) )) 
 				{
 					/*not the end, save line to the macro table*/
-					strcpy(temp_macro_table[num_of_macro_lines],line);
+					strcpy(temp_macro_table[num_of_macro_lines], line);
 					num_of_macro_lines++;
 					continue;
 				}
@@ -145,7 +146,7 @@ char * save_name(char *linePointer)
 	name = (char *)malloc(sizeof(char) * (name_length+1));
 	if(name == NULL)
 	{
-		printf("memmory allocation failed, abort");
+		printf("Error: Memory allocation failed.");
                 exit(0);
 	}
 
@@ -164,7 +165,7 @@ char * save_name(char *linePointer)
 int name_check(char *linePointer, char *name, int *lettersCounter)
 {
 	int j=0;
-	
+	*lettersCounter =0;
 	/*count the chars of the word that the pointer points to*/
 	while((linePointer[j] >= 'A' && linePointer[j] <= 'Z') || (linePointer[j] >= 'a' && linePointer[j] <= 'z') || (linePointer[j] >= 0 && linePointer[j] <= 9) || linePointer[j] == '#' || linePointer[j] == '.' )
 	{
@@ -229,59 +230,71 @@ char *create_new_macro_file(char *oldFileName, char *ending, int originalLength)
 	return oldFileName;
 }
 
+void create_list()
+{
+	list = (head_of_list*)malloc(sizeof(head_of_list));
+	list->head = NULL;
+}
 
-
-void add_node( char* name, char temp_macro_table[LENGTH_MACRO][LENGTH_LINE], int num_of_macro_lines)
+void add_node(char* name, char temp_macro_table[LENGTH_MACRO][LENGTH_LINE], int num_of_macro_lines)
 {
 	int j;
-  	macro_table* p = (macro_table*)malloc(sizeof(macro_table*));
+  	macro_table* p = (macro_table*)malloc(sizeof(macro_table));
 	macro_table* temp;
+	if(p == NULL)
+	{
+		printf("Error: Memory allocation failed.");
+		exit(0);
+	}
+	
 	/*copying the information to the macro node */
-    	strcpy (p->macro_name , name);
-    	for(j = 0; j < num_of_macro_lines; j++)
-    	{
-        	strcpy(p->macro_lines[j] , temp_macro_table[j]);
-    	}
+    strcpy (p->macro_name , name);
+    for(j = 0; j < num_of_macro_lines; j++)
+    {
+    	strcpy(p->macro_lines[j] , temp_macro_table[j]);
+    }
+		
 	p->line_max_indx = num_of_macro_lines;
-    	p->next = NULL;
+    p->next = NULL;
 	
 	/*adding the node to the linked list */
-    	if(head == NULL)
-    	{
-        	head = p;
-        	return;
-    	}
-    	else
-    	{
-        	temp = head;
-        	while(temp->next != NULL)
-            	temp = temp->next;
-        	temp->next = p;
-    	}	
+    if(list->head == NULL)
+    {
+    	list->head = p;
+    	return;
+    }
+	else
+    {
+    	temp = list->head;
+     	while(temp->next != NULL)
+           	temp = temp->next;
+    	temp->next = p;
+	}	
 }
 
 
 
 void transfer_macro(char line[],  FILE *newfp, int *skip_macro_name)
 {
-    	int lettersCounter=0;
-    	int i;
-	macro_table* curr = head;
+	int lettersCounter=0;
+ 	int i;
+	macro_table* curr = list->head;
 	
-    	removeSpace(line); /*removing all the white tabs in the line */
+	removeSpace(line); /*removing all the white tabs in the line */
 
-    	while( curr != NULL )
+	while( curr != NULL )
+    {
+	/*checking if the word in the line is one of the macros we have saved */
+    	if(name_check(curr->macro_name, line, &lettersCounter) )
     	{
-		/*checking if the word in the line is one of the macros we have saved */
-        	if(name_check(curr->macro_name, line, &lettersCounter) )
-        	{
 			*skip_macro_name = 1; /*turning the flag on */
 			/*we transfer the macro lines to the new file */
-            		for(i=0 ; i < curr->line_max_indx ; i++)
-            			fputs(curr->macro_lines[i], newfp);
-        	}
-        
-        	curr = curr->next;
+        	for(i=0 ; i < curr->line_max_indx ; i++){
+            	fputs(curr->macro_lines[i], newfp);
+			}
+        }
+			
+        curr = curr->next;
     	}
 }
 
@@ -290,12 +303,13 @@ void transfer_macro(char line[],  FILE *newfp, int *skip_macro_name)
 void free_memory()
 {
 	macro_table* temp;
-	while(head != NULL)
+	while(list->head != NULL)
 	{
-		temp = head;
-		head = head-> next;
+		temp = list->head ;
+		list->head  = list->head -> next;
 		free(temp);	
 	}
+	free(list);
 }
 
 

@@ -2,6 +2,7 @@
 #include <stdlib.h>
 #include <string.h>
 #include <math.h>
+#include <ctype.h>
 
 #define LENGTH_LINE 81
 #define LENGTH_MACRO 6
