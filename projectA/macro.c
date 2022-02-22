@@ -19,7 +19,7 @@ void macro(char *file)
     char macro_name1[LENGTH_LINE]; /*to store the macro name*/
 	int skip_macro_name; /*flag to know if we skip the macro name */
 	int nameLength = strlen(file); /*the length of the file name */
-
+	char *point_to_label_name;
 	create_list(); /*creates a linked list */
 
 	/*open file named .as and point to it. */
@@ -90,8 +90,12 @@ void macro(char *file)
 				}
 				
 				/*saving the name of the macro */
-				strcpy(macro_name1,save_name(linePointer));
-				
+				point_to_label_name = save_name(linePointer);
+
+				if(point_to_label_name != NULL){
+					strcpy(macro_name1,point_to_label_name);
+					free(point_to_label_name);
+				}
 				/*we are now inside a macro*/
 				macro_signal = 1;          		
 			}
@@ -130,7 +134,6 @@ void macro(char *file)
 }
 
 
-
 char * save_name(char *linePointer)
 {
 	int j;
@@ -157,7 +160,6 @@ char * save_name(char *linePointer)
 	}
 	name[++j] = '\0';
 	return name;
-    	free(name);
 }
 
 
@@ -233,6 +235,11 @@ char *create_new_macro_file(char *oldFileName, char *ending, int originalLength)
 void create_list()
 {
 	list = (head_of_list*)malloc(sizeof(head_of_list));
+	if(list == NULL)
+     {
+        printf("Error: Memory allocation failed.");
+		exit(0);
+     }
 	list->head = NULL;
 }
 

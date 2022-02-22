@@ -1,7 +1,8 @@
 #include "constant.h"
-#include "inspectLine.h"
 #include "data_structure.h"
+#include "inspectLine.h"
 #include "errors.h"
+
 
 
 
@@ -37,21 +38,22 @@ int valid_label(char *name, int *error, int line_counter)
 }
 
 /*label_exist, checks if there is already a symbol with the same name in our table */
-void label_exist(char *label_name, int *error)
+void label_exist(head_of_symbol_list* list ,char *label_name, int *error)
 {
-    symbol_table *p;
-    
+    symbol_table *temp = list->head;
 
-    for(p=symbol_head ; p ; p=p->next )
+    while(temp->next != NULL)
     {
-        if(!strcmp(label_name, p->symbol))
+        if(!strcmp(label_name, temp->symbol))
         {
             printf("\nError: symbol already exist.");
             *error = 1;
             return;
         }
+        temp = temp->next;
     }
 }
+
 
 int string_is_valid(char *linePointer, int *error, int line_counter){
     if( (*linePointer < 32 && *linePointer != 9) ||  *linePointer > 126 )

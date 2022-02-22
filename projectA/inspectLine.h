@@ -22,7 +22,7 @@ FILE* get_file(char *);
 char* is_label(char *, int *, int*, int);
 
 /*add_label, adding a label to the symbol table with his values */
-void add_label(char *, int); 
+void add_label(head_of_symbol_list* ,char *, int );
 
 /*reading_data_line, reads a line, if there is errors it prints it out, and store data to the data_image */
 void reading_data_line(char *, int *, int );
@@ -38,5 +38,10 @@ void reading_string_line(char *, int *, int );
 char *createIntChar(char *, int);
 
 int countNum(char *);
+
+/*for debugging please delete it later! !!@~!~!~!~!~!~!~~!~!~!~!~!!~!~~ */
+void print_all_symbols(head_of_symbol_list* );
+void print_data_table();
+/* !~!~!~!~!~!~~!~!~!~!~!!~!~!~!~!~!~!~!~~!~!~!~!~!!~!~!~!~!~!~!~!~~!~!~!~!~!!~!~*/
 
 

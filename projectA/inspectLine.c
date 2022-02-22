@@ -1,15 +1,15 @@
 #include "constant.h"
-#include "inspectLine.h"
-#include "macro.h"
 #include "data_structure.h"
-#include "manage_line2.h"
+#include "inspectLine.h"
 #include "errors.h"
+#include "macro.h"
+#include "manage_line2.h"
+
 
 /*initialize data counter(DC), and instrcution counter(IC) */
 int DC = 0;
 int IC = 100;
 
-symbol_table *symbol_head = NULL;
 
 /*data image array */
  line *data_image[LENGTH_DATA];
@@ -34,7 +34,6 @@ void manage(char* file)
    
 
     manage_line(fp);
-    printf("\nWE Exit manage line totally");
 }
 
 FILE* get_file(char *file)
@@ -59,20 +58,22 @@ void manage_line(FILE *fp)
     char line[LENGTH_LINE];
     int error=0; /*flag to know if there was an error in the program */
     int label_flag = 0; /*to indicate if there is a label */
-    char *label_name;
+    char label_name[LENGTH_LABEL];
+	char *point_to_label_name;
     int line_counter=0;
     int lettersCounter=0;
     int symbol_type;
+	head_of_symbol_list *symbol_list = NULL;
+    symbol_list = create_symbol_head();
 
-    printf("\nBefore fgets\n");
     
     while(fgets(line, LENGTH_LINE, fp) != NULL)
     {
-        printf("\nLine: %d",line_counter);
+        label_flag=0;
         line_counter++;
         linePointer = line;
 
-       
+       printf("\n START LOOP\n");
         if(*linePointer == EOF){
             if(error)
                 exit(0);
@@ -88,54 +89,68 @@ void manage_line(FILE *fp)
         /*check if we got a comment */
         COMMENT_CHECK
 
+		
+
         /*if there is a label we turn the label_flag on and save his name */
-        label_name = is_label(linePointer, &label_flag, &error, line_counter) ;
+        point_to_label_name = is_label(linePointer, &label_flag, &error, line_counter);
+
+		printf("\nafter is label line 97: %s", linePointer);
+        if(point_to_label_name !=NULL)
+        {
+            strcpy(label_name, point_to_label_name );
+            free(point_to_label_name);
+			linePointer += strlen(label_name) +1;
+        }
         
-        if(label_name != NULL)
-            linePointer += strlen(label_name) +1;
             
-         
+            
+        printf("\nbefore label check line 103: %s", linePointer);
+
         if(label_flag)
             skipSpaceTab(linePointer);
 
-
+		printf("\nbefore word check line 107: %s", linePointer);
         if(word_check(linePointer, ".data", &lettersCounter) || word_check(linePointer, ".string", &lettersCounter))
         {
             
             symbol_type = DATA;
 
+			printf("\nbefore label flag check --> %s", linePointer);
             if(label_flag)
             {
-                label_exist(label_name  ,&error);
-                
-                add_label(label_name, symbol_type);
-            }
+                if(symbol_list != NULL && symbol_list->head != NULL)
+                    label_exist(symbol_list ,label_name  ,&error);
 
+                add_label(symbol_list ,label_name, symbol_type);
+                
+            }
+			printf("\n%s<---after label flag check\n", linePointer);
             
             if(word_check(linePointer, ".data", &lettersCounter) ){
                 linePointer += lettersCounter; /*updating the pointer */
                 reading_data_line(linePointer, &error, line_counter);
-                printf("\nEnterd DATA reading line\n");
             }
             else{
                 linePointer += lettersCounter; /*updating the pointer */
                 reading_string_line(linePointer, &error, line_counter);
-                printf("\nEnterd else STRING reading line\n");
             }
-            printf("\ncontinue");
             continue;
         }
 
-        
-            printf("\n END");
+			
             
-
         
 
-        
+        	
+
                 
     }
+	/*!~!~!~!~~!~!~ TEMPORARAY FOR DEBUGGING!!@@!@!@~!~!~@~!~@~ */
+		print_all_symbols(symbol_list);
+			print_data_table();
 
+		/*free all the left memory in symbol_list */
+	    free_symbol_table_memory(symbol_list);
 
 }
 
@@ -157,10 +172,12 @@ void remove_end_white_chars(char *linePointer)
 
 char *is_label(char *linePointer, int *label_flag, int *error, int line_counter)
 {
-    char *name = save_name(linePointer); /*saving label name */
-    int length_name = strlen(name);
+    char *name;
+    int length_name;
+    name = save_name(linePointer); /*saving label name */
+    length_name = strlen(name);
 
-    /*it means there is a label */
+    /*if there is ':' in the end of the name its a label */
     if(name[length_name-1] == ':')
     {
         if(valid_label(name, error, line_counter))
@@ -168,21 +185,27 @@ char *is_label(char *linePointer, int *label_flag, int *error, int line_counter)
             *label_flag = 1;
             name[length_name - 1] = '\0';
             return name;
+            
         }
 
     }
-
+    free(name);
     return NULL;
 }
 
-void add_label(char *label_name, int symbol_type)
+void add_label(head_of_symbol_list* symbol_list ,char *label_name, int symbol_type)
 {
     symbol_table *p = (symbol_table*)malloc(sizeof(symbol_table));
-     
 	symbol_table* temp;
+
+    if(p==NULL)
+    {
+        printf("Error: Memory allocation failed.");
+		exit(0);
+    }
 	/*copying the information to the symbol node */
     strcpy (p->symbol , label_name);
-    p->next = NULL;
+
     switch(symbol_type)
     {
         case DATA:
@@ -203,16 +226,18 @@ void add_label(char *label_name, int symbol_type)
     p->value = IC;
     p->offset = IC % 16;
 	p->base_address = IC - p->offset;
+    p->next = NULL;
+    
 
-	/*adding the node to the linked list */
-    	if(symbol_head == NULL)
+	/*adding the node to the linked symbol_list */
+    	if(symbol_list->head == NULL)
     	{
-        	symbol_head = p;
+        	symbol_list->head = p;
         	return;
     	}
     	else
     	{
-        	temp = symbol_head;
+        	temp = symbol_list->head;
         	while(temp->next != NULL)
             	temp = temp->next;
         	temp->next = p;
@@ -311,11 +336,9 @@ void reading_data_line(char *linePointer, int *error, int line_counter)
 				return;
 			}
 		}
-
-        printf("\n%u ", data_image[IC]->signal);
+		printf("\nin line 332 = x: %d\n", x);
 		data_image[IC] = add_data_parameter(x);
 		is_Empty=0;
-		printf("\n%u ", data_image[IC]->signal);
 		IC++;
 		DC++;
 
@@ -431,7 +454,7 @@ line *add_data_parameter(int x)
 
 void reading_string_line(char *linePointer, int *error, int line_counter)
 {
-    printf("\nEnterd string_line reading");
+    
 
 	/*we need to have space between the command to the parameters
         check if we got undefined directive command, and prints an error if needed */
@@ -454,7 +477,7 @@ void reading_string_line(char *linePointer, int *error, int line_counter)
 			return;
 
 		data_image[IC] = add_data_parameter(*linePointer);
-		printf("\n %d", data_image[IC]->signal);
+		
 		IC++;
 		DC++;
 
@@ -462,7 +485,6 @@ void reading_string_line(char *linePointer, int *error, int line_counter)
 	}
 
 	data_image[IC] = add_data_parameter(0);
-	printf("\n %d", data_image[IC]->signal);
 	IC++;
 	DC++;
 
@@ -475,3 +497,61 @@ void reading_string_line(char *linePointer, int *error, int line_counter)
 		return;
 	}
 }
+
+
+
+
+/*~!~!~!~!~ for DEBUGGING please delete it LATER ~!~!~!~!~!~!~~!~!~!~!~!~!~ ~!~!~!~!~!~!~ ~!~!~!~!~!~!~ ~!~!~!~!~!~!~  */
+void print_all_symbols(head_of_symbol_list* list)
+{
+    symbol_table *p;
+    
+    p = list->head;
+    while(p!= NULL)
+    {
+        printf("\nSymbolName: %s\nSymbol_base: %d\nSymbol_offset: %d\nSymbol_value: %d\n", p->symbol, p->base_address, p->offset,p->value);
+        p=p->next;
+    }
+}
+
+void print_data_table()
+{
+	int i;
+	for(i=100; i<IC; i++)
+	{
+		printf("\nData Line: %u\n",data_image[i]->signal);
+	}
+}
+/* !~!~!~!~!~!~~!~!~!~!~!~!~ ~!~!~!~!~!~!~ ~!~!~!~!~!~!~ ~!~!~!~!~!~!~ !~!~!~!~!~!~~!~!~!~!~!~!~ ~!~!~!~!~!~!~ ~!~!~!~!~!~!~ ~!~!~!~!~!~!~ */
+
+
+head_of_symbol_list *create_symbol_head()
+ {
+     head_of_symbol_list *list = (head_of_symbol_list*)malloc(sizeof(head_of_symbol_list));
+     if(list == NULL)
+     {
+        printf("Error: Memory allocation failed.");
+		exit(0);
+     }
+     list->head = NULL;
+     return list;
+ }
+
+
+void free_symbol_table_memory(head_of_symbol_list* list)
+{
+    symbol_table* p;
+    symbol_table* temp;
+
+    if(list == NULL)
+        return;
+    p = list->head;
+    while(p != NULL)
+    {
+        temp = p;
+        p = p->next;
+        free(temp);
+    }
+    free(list);
+}
+

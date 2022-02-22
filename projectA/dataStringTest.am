@@ -1,3 +1,7 @@
-END:	.string "asd"
-	LOOP: 	.string "123"
-	.string "asdzx"
+LOOP: .string "abcd"
+	.string "k"
+ILAY: 	.data 6,-9
+	.data 7, 2, 3
+	.data 123, -2,-10
+K: 		.string "123Hell"
+

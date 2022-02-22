@@ -34,7 +34,10 @@ typedef struct head_of_list
         macro_table *head;
 }head_of_list;
 
-
+typedef struct head_of_symbol_list
+{
+        symbol_table* head;
+}head_of_symbol_list;
 
 
 /*create_list, creates a linked list */
@@ -42,3 +45,7 @@ void create_list();
 
 /*add_data_parameter, adding a data line node */
 line *add_data_parameter(int );
+
+head_of_symbol_list *create_symbol_head();
+
+void free_symbol_table_memory(head_of_symbol_list* );

@@ -30,7 +30,7 @@ extern symbol_table *symbol_head;
 
 int valid_label(char *, int *, int);
 
-void label_exist(char *, int *);
+void label_exist(head_of_symbol_list* ,char *, int *);
 
 int string_is_valid(char *, int *, int );
 
