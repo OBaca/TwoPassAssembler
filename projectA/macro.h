@@ -1,9 +1,6 @@
 
 /*macro - is a function that recieve .as file and create new .am file with all the assignments of the macros*/
-void macro(char *);
-
-/*create_new_macro_file - is a function that gets a file name and change the ending of the name depends on the ending name given. */
-char *create_new_macro_file(char *, char *, int);
+void macro(char *, int);
 
 /*name_check - is a function that get two string and compare them. return 1 if they match and 0 otherwise*/
 int name_check(char *, char *, int *);

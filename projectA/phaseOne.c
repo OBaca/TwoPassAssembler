@@ -1,9 +1,10 @@
 #include "constant.h"
 #include "data_structure.h"
-#include "inspectLine.h"
+#include "phaseOne.h"
 #include "errors.h"
 #include "macro.h"
 #include "manage_line2.h"
+#include "assembler.h"
 
 
 /*initialize data counter(DC), and instrcution counter(IC) */
@@ -17,51 +18,9 @@ enum {DATA, CODE, ENTRY, EXTERNAL};
 enum {SOURCE, DEST};
 enum {A=4, R=2, E=1};
 
-int main(int argc, char *argv[])
-{
-
-    
-    manage(argv[1]);
-    
-    return 0;
-}
-
-void manage(char* file)
-{
-    FILE *fp;
-	head_of_data_lines *data_lines_list = NULL;
-	head_of_symbol_list *symbol_list = NULL;
-	int error=0; /*flag to know if there was an error in the program */
 
 
-    fp = get_file(file);
-	
-
-    manage_line(fp, data_lines_list, symbol_list, &error);
-	
-	printf("\n %d", error);
-	/*free all the memory in symbol and data list */
-	free_symbol_table_memory(symbol_list);
-	free_data_line_memory(data_lines_list);
-}
-
-FILE* get_file(char *file)
-{
-    FILE *fp;
-    int nameLength = strlen(file);
-
-    /*open file named .am and point to it. */
-    if(!(fp= fopen(create_new_macro_file(file, ".am",nameLength ), "r"))){ 
-		printf("\nError: cannot open file name: %s.am\n",file); 
-		exit(0);
-	}
-    
-    return fp;
-
-}
-
-
-void manage_line(FILE *fp, head_of_data_lines* data_lines_list, head_of_symbol_list *symbol_list, int *error)
+void manage_phaseOne(FILE *fp, head_of_data_lines* data_lines_list, head_of_symbol_list *symbol_list, int *error)
 {
     char *linePointer=NULL;
     char line[LENGTH_LINE];
@@ -74,9 +33,7 @@ void manage_line(FILE *fp, head_of_data_lines* data_lines_list, head_of_symbol_l
     int symbol_type=0;
 	int data_flag = 0;
 
-    symbol_list = create_symbol_head();
-
-	data_lines_list = create_data_list();
+    
 
     
     while(fgets(line, LENGTH_LINE, fp) != NULL)
@@ -101,13 +58,19 @@ void manage_line(FILE *fp, head_of_data_lines* data_lines_list, head_of_symbol_l
         /*skipping all the first spaces and tabs */
         skipSpaceTab(linePointer);
 
+		/*if its an empty line we skip */
+		if(*linePointer == '\n' || *linePointer == '\0')
+			continue;
+
         /*check if we got a comment */
         COMMENT_CHECK
 
+		
 
         /*if there is a label we turn the label_flag on and save his name */
         point_to_label_name = is_label(linePointer, &label_flag, error, line_counter);
 
+		
 		
         if(point_to_label_name !=NULL)
         {
@@ -118,7 +81,7 @@ void manage_line(FILE *fp, head_of_data_lines* data_lines_list, head_of_symbol_l
         
             
             
-
+		
 
         if(label_flag)
             skipSpaceTab(linePointer);
@@ -199,11 +162,11 @@ void manage_line(FILE *fp, head_of_data_lines* data_lines_list, head_of_symbol_l
                 
     }
 
-	
+	fclose(fp);
 	/*!~!~!~!~~!~!~ TEMPORARAY FOR DEBUGGING!!@@!@!@~!~!~@~!~@~ */
 		print_all_symbols(symbol_list);
 		print_data_lines_list(data_lines_list);
-		printf("IC: %d, DC: %d", --IC, DC);
+		printf("IC: %d, DC: %d", IC-1, DC);
 
 		
 
@@ -708,23 +671,6 @@ head_of_symbol_list *create_symbol_head()
  }
 
 
-void free_symbol_table_memory(head_of_symbol_list* list)
-{
-    symbol_table* p;
-    symbol_table* temp;
-
-    if(list == NULL)
-        return;
-    p = list->head;
-    while(p != NULL)
-    {
-        temp = p;
-        p = p->next;
-        free(temp);
-    }
-    free(list);
-}
-
 
 head_of_data_lines *create_data_list()
 {
@@ -767,21 +713,6 @@ void add_data_line(head_of_data_lines* data_lines_list , line *data_line)
 }
 
 
-void free_data_line_memory(head_of_data_lines* list)
-{
-    data_lines* p;
-    data_lines* temp;
 
-    if(list == NULL)
-        return;
-    p = list->head;
-    while(p != NULL)
-    {
-        temp = p;
-        p = p->next;
-        free(temp);
-    }
-    free(list);
-}
 
 

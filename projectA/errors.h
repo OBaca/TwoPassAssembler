@@ -1,6 +1,6 @@
 /* macros */
 #define UNDEFINED_DIR_CMD \
-    if(*linePointer != ' ') \
+    if(*linePointer != ' ' && *linePointer != '\t') \
         { \
             printf("\nError: Undefined directive command. In line: %d", line_counter); \
             *error = 1; \

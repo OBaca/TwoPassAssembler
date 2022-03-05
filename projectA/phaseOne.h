@@ -7,16 +7,13 @@
 
 
 
-void manage_line(FILE*, head_of_data_lines*, head_of_symbol_list*, int *);
+void manage_phaseOne(FILE*, head_of_data_lines*, head_of_symbol_list*, int *);
 
-/* */
-void manage(char *);
+
 
 /*get_line, getting a line from a file */
 void get_line(FILE*);
 
-/*get_file, opens a file */
-FILE* get_file(char *);
 
 /*is_label, if there is label in a line and its valid we will return his name, if not return NULL */
 char* is_label(char *, int *, int*, int);

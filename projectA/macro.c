@@ -1,14 +1,14 @@
 #include "constant.h"
 #include "macro.h"
 #include "data_structure.h"
-
+#include "assembler.h"
 
 head_of_list *list = NULL;
 
 /*This function gets a FILE POINTER ! , DONT FORGET TO CHANGE $$ */
-void macro(char *file)
+void macro(char *file, int argv_length)
 {
-	FILE *fp, *newfp; /*fp pointer to .as, newfp pointer to .am */
+	FILE *fp=NULL, *newfp=NULL; /*fp pointer to .as, newfp pointer to .am */
 	char line[LENGTH_LINE]; /*to store each line in the file */
 	char line_copy[LENGTH_LINE]; /*a copy of the original line */
 	char *linePointer; 
@@ -18,23 +18,14 @@ void macro(char *file)
 	int macro_signal=0; /*flag to know if we are inside a macro */
     char macro_name1[LENGTH_LINE]; /*to store the macro name*/
 	int skip_macro_name; /*flag to know if we skip the macro name */
-	int nameLength = strlen(file); /*the length of the file name */
 	char *point_to_label_name;
 	create_list(); /*creates a linked list */
 
 	/*open file named .as and point to it. */
-	if(!(fp= fopen(create_new_macro_file(file, ".as",nameLength ), "r"))){ 
-		printf("\nError: cannot open file name: %s.as\n",file); 
-		return;
-	}
-	
+	fp = get_file(file,argv_length, ".as", "r");
 	/*create new file named .am */
-	if(!(newfp = fopen(create_new_macro_file(file, ".am", nameLength), "w+")))
-	{
-		printf("\nError: cannot create a file name: %s.am\n",file); 
-		return;
-	}
-	
+	newfp = get_file(file, argv_length, ".am", "w+");
+
 
 	/*reading through the lines in the file */
 	while(fgets(line,LENGTH_LINE , fp) != NULL)	
@@ -73,7 +64,7 @@ void macro(char *file)
 				lettersCounter=0; /*reset the counter for future use. */
 						
 				/*if the next char is not a space, we will copy the whole line to the new file */
-				if(*(linePointer) != ' ')
+				if(*linePointer != ' ' && *linePointer != '\t')
 				{
 					fputs(line, newfp);
 					continue;
@@ -217,20 +208,7 @@ void removeSpace(char *linePointer)
 
 
 
-char *create_new_macro_file(char *oldFileName, char *ending, int originalLength)
-{
-	/*we store the size of the old file name */
-	int oldFileLength = strlen(oldFileName);
-	/*if the size is less then the oldFile we need to delete extra chars from the name of file. */
-	if(originalLength < oldFileLength)
-	{
-		oldFileName[oldFileLength - (oldFileLength - originalLength)] = '\0';
-	}
-	
-	strcat(oldFileName, ending);
 
-	return oldFileName;
-}
 
 void create_list()
 {

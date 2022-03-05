@@ -1,6 +1,6 @@
 #include "constant.h"
 #include "data_structure.h"
-#include "inspectLine.h"
+#include "phaseOne.h"
 #include "errors.h"
 
 
@@ -43,7 +43,7 @@ void label_exist(head_of_symbol_list* list ,char *label_name, int *error, int sy
     symbol_table *temp = list->head;
     enum {EXTERNAL=3 };
 
-    while(temp->next != NULL)
+    while(temp != NULL)
     {
        
 
