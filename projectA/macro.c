@@ -138,7 +138,7 @@ char * save_name(char *linePointer)
 {
 	int j;
 	int name_length = 0;
-	char *name;
+	char *name=NULL;
 
 	/*count the length of the current word in line*/
 	for(j=0 ; linePointer[j] && linePointer[j] != '\n' && linePointer[j] != ' ' && linePointer[j] != '\t'; j++ )
@@ -149,7 +149,7 @@ char * save_name(char *linePointer)
 	name = (char *)malloc(sizeof(char) * (name_length+1));
 	if(name == NULL)
 	{
-		printf("Error: Memory allocation failed.");
+		printf("\nError: Memory allocation failed.");
                 exit(0);
 	}
 
@@ -158,7 +158,7 @@ char * save_name(char *linePointer)
 	{
 		name[j] = linePointer[j];
 	}
-	name[++j] = '\0';
+	name[j] = '\0';
 	return name;
 }
 
@@ -237,7 +237,7 @@ void create_list()
 	list = (head_of_list*)malloc(sizeof(head_of_list));
 	if(list == NULL)
      {
-        printf("Error: Memory allocation failed.");
+        printf("\nError: Memory allocation failed.");
 		exit(0);
      }
 	list->head = NULL;
@@ -250,7 +250,7 @@ void add_node(char* name, char temp_macro_table[LENGTH_MACRO][LENGTH_LINE], int 
 	macro_table* temp;
 	if(p == NULL)
 	{
-		printf("Error: Memory allocation failed.");
+		printf("\nError: Memory allocation failed.");
 		exit(0);
 	}
 	

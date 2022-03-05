@@ -11,16 +11,15 @@ sub r1, r4
 bne END
 cmp val1, #-6
 bne END[r15]
-lol
-bitch
-fuck
-what the fuck
 dec K
+lea STR, r6
+mov r3, W
+bne END
+dec k
 .entry MAIN
 sub LOOP[r10] ,r14
-sub r2, r3 ---m23232
 END:		 stop
-STR: 		.string “abcd”
+STR: 		.string "abcd"
 LIST: 		.data 6, -9
 .data -100
 .entry K

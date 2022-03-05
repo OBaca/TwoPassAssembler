@@ -39,6 +39,17 @@ typedef struct head_of_symbol_list
         symbol_table* head;
 }head_of_symbol_list;
 
+typedef struct data_lines
+{
+        line *data;
+        struct data_lines *next;
+}data_lines;
+
+typedef struct head_of_data_lines
+{
+        data_lines *head;
+}head_of_data_lines;
+
 
 /*create_list, creates a linked list */
 void create_list();
@@ -49,3 +60,8 @@ line *add_data_parameter(int );
 head_of_symbol_list *create_symbol_head();
 
 void free_symbol_table_memory(head_of_symbol_list* );
+
+
+head_of_data_lines *create_data_list();
+void add_data_line(head_of_data_lines*  , line *);
+void free_data_line_memory(head_of_data_lines* );

@@ -1,15 +1,184 @@
-#include "constant.h"
-#include "data_structure.h"
-#include "inspectLine.h"
-#include "errors.h"
-#include "macro.h"
-#include "manage_line2.h"
+
+#include <stdio.h> /*delete later for debug */ 
+#include <stdlib.h>
+#include <string.h>
+#include <math.h>
+#include <ctype.h>
+
+#define LENGTH_LINE 81
+#define LENGTH_MACRO 6
+#define LENGTH_LABEL 31
+#define LENGTH_ATTRIBUTES 12
+#define LENGTH_DATA 8192
 
 
-/*initialize data counter(DC), and instrcution counter(IC) */
-int DC = 0;
-int IC = 100;
 
+/*macros*/
+#define COMMENT_CHECK \
+    { \
+        if(*linePointer == ';') \
+            continue; \
+    }
+
+
+/* macros */
+
+
+#define ILLEGAL_COMMA \
+        printf("\nError: Illegal comma. In line: %d", line_counter); \
+        *error = 1; \
+        return; 
+    
+
+#define ILLEGAL_PARAM \
+        printf("\nError: Illegal parameter. In line: %d", line_counter); \
+        *error = 1; \
+        return;
+        
+#define MULTIPLE_COMMAS \
+        printf("\nError: Multiple consecutive commas. In line: %d", line_counter); \
+        *error=1; \
+        return;
+    
+#define EXTRANEOUS_TEXT \
+        if(*linePointer != '\n' && *linePointer != '\0') \
+                {       \
+                        printf("\nError: Extraneous text, In line: %d",line_counter); \
+                        *error = 1; \
+                        return; \
+                }
+
+
+
+/*define of struct node to store data in the symbol table*/
+typedef struct symbol_table
+{
+        char symbol[LENGTH_LABEL];
+        int value;
+        int base_address;
+        int offset;
+        char attributes[LENGTH_ATTRIBUTES];
+        struct symbol_table *next;
+}symbol_table;
+
+
+/*struct to store a data/string line  */
+typedef struct line
+{
+	unsigned int classify:4;
+	unsigned int signal:16;	
+}line;
+
+
+typedef struct head_of_symbol_list
+{
+        symbol_table* head;
+}head_of_symbol_list;
+
+typedef struct data_lines
+{
+        line *data;
+        struct data_lines *next;
+}data_lines;
+
+typedef struct head_of_data_lines
+{
+        data_lines *head;
+}head_of_data_lines;
+
+
+
+
+
+/*create_new_macro_file - is a function that gets a file name and change the ending of the name depends on the ending name given. */
+char *create_new_macro_file(char *, char *, int);
+
+/*name_check - is a function that get two string and compare them. return 1 if they match and 0 otherwise*/
+int name_check(char *, char *, int *);
+
+/*skipSpaceTab - is a function that skips spaces and tabs in a string*/
+void skipSpaceTab(char *);
+
+/*save_name - is a function that save string into a char pointer*/
+char *save_name(char *);
+
+/*removeSpace - is a function that remove all the white spaces from the string*/
+void removeSpace(char *);
+
+/*transfer_macro - is a function that gets a pointer to a new file and a line that we check if there is a word that match to one of the saved macros, and a flag, if this is a macro that we saved we transfer the macro lines into the new .am file.  */
+void transfer_macro(char [], FILE *, int *);
+
+
+int valid_label(char *, int *, int);
+
+void label_exist(head_of_symbol_list* ,char *, int *,int );
+
+int string_is_valid(char *, int *, int );
+
+
+
+
+void manage_line(FILE*, head_of_data_lines*, head_of_symbol_list*, int *);
+
+/* */
+void manage(char *);
+
+/*get_line, getting a line from a file */
+void get_line(FILE*);
+
+/*get_file, opens a file */
+FILE* get_file(char *);
+
+/*is_label, if there is label in a line and its valid we will return his name, if not return NULL */
+char* is_label(char *, int *, int*, int);
+
+/*add_label, adding a label to the symbol table with his values */
+void add_label(head_of_symbol_list* ,char *, int );
+
+/*reading_data_line, reads a line, if there is errors it prints it out, and store data to the data_image */
+void reading_data_line(head_of_data_lines*,char *, int *, int );
+
+/*word_check, check if two strings are equal */
+int word_check(char *, char *, int *);
+
+/*IntCheck, check if a string of numbers is a valid int, and saves it. */
+int intCheck(char *, int *, int *);
+
+void reading_string_line(head_of_data_lines* ,char *, int *, int );
+
+char *createIntChar(char *, int);
+
+int countNum(char *);
+
+void add_extern(head_of_symbol_list*  ,char *, int , int *, int );
+
+void manage_code_lines(char *);
+
+void skip_chars(char *);
+
+/*for debugging please delete it later! !!@~!~!~!~!~!~!~~!~!~!~!~!!~!~~ */
+void print_all_symbols(head_of_symbol_list* );
+void print_data_lines_list(head_of_data_lines* );
+/* !~!~!~!~!~!~~!~!~!~!~!!~!~!~!~!~!~!~!~~!~!~!~!~!!~!~!~!~!~!~!~!~~!~!~!~!~!!~!~*/
+
+
+
+
+
+/*create_list, creates a linked list */
+void create_list();
+
+/*add_data_parameter, adding a data line node */
+line *add_data_parameter(int );
+
+head_of_symbol_list *create_symbol_head();
+
+void free_symbol_table_memory(head_of_symbol_list* );
+
+
+head_of_data_lines *create_data_list();
+void add_data_line(head_of_data_lines*  , line *);
+void free_data_line_memory(head_of_data_lines* );
 
 
 
@@ -17,9 +186,12 @@ enum {DATA, CODE, ENTRY, EXTERNAL};
 enum {SOURCE, DEST};
 enum {A=4, R=2, E=1};
 
+/*initialize data counter(DC), and instrcution counter(IC) */
+int DC = 0;
+int IC = 100;
+
 int main(int argc, char *argv[])
 {
-
     
     manage(argv[1]);
     
@@ -39,7 +211,7 @@ void manage(char* file)
 
     manage_line(fp, data_lines_list, symbol_list, &error);
 	
-	printf("\n %d", error);
+	
 	/*free all the memory in symbol and data list */
 	free_symbol_table_memory(symbol_list);
 	free_data_line_memory(data_lines_list);
@@ -73,7 +245,6 @@ void manage_line(FILE *fp, head_of_data_lines* data_lines_list, head_of_symbol_l
     int lettersCounter=0;
     int symbol_type=0;
 	int data_flag = 0;
-
     symbol_list = create_symbol_head();
 
 	data_lines_list = create_data_list();
@@ -86,7 +257,6 @@ void manage_line(FILE *fp, head_of_data_lines* data_lines_list, head_of_symbol_l
         line_counter++;
         linePointer = line;
 		point_to_label_name=NULL;
-
        
         if(*linePointer == EOF){
             if(*error)
@@ -125,7 +295,7 @@ void manage_line(FILE *fp, head_of_data_lines* data_lines_list, head_of_symbol_l
 
 		if(*linePointer == '.')
 			data_flag = 1;
-		
+
         if(word_check(linePointer, ".data", &lettersCounter) || word_check(linePointer, ".string", &lettersCounter))
         {
             
@@ -180,7 +350,6 @@ void manage_line(FILE *fp, head_of_data_lines* data_lines_list, head_of_symbol_l
             continue; 
 		}
 
-
 		if(label_flag)
         {
 			symbol_type = CODE;
@@ -196,7 +365,7 @@ void manage_line(FILE *fp, head_of_data_lines* data_lines_list, head_of_symbol_l
 		
 		manage_code_lines(linePointer);
 		
-                
+               
     }
 
 	
@@ -329,7 +498,7 @@ void remove_end_white_chars(char *linePointer)
 char *is_label(char *linePointer, int *label_flag, int *error, int line_counter)
 {
     char *name=NULL;
-    int length_name=0;
+    int length_name;
     name = save_name(linePointer); /*saving label name */
     length_name = strlen(name);
 
@@ -356,7 +525,7 @@ void add_label(head_of_symbol_list* symbol_list ,char *label_name, int symbol_ty
 
     if(p==NULL)
     {
-        printf("\nError: Memory allocation failed.");
+        printf("Error: Memory allocation failed.");
 		exit(0);
     }
 	/*copying the information to the symbol node */
@@ -443,7 +612,7 @@ int word_check(char *linePointer, char *name, int *lettersCounter)
 void reading_data_line(head_of_data_lines* data_lines_list ,char *linePointer, int *error, int line_counter)
 {
 	int lettersCounter = 0;
-	int x=0;
+	int x;
 	int errorInInt=0;
 	int commaFlag =0;
 	int is_Empty = 1;
@@ -451,7 +620,12 @@ void reading_data_line(head_of_data_lines* data_lines_list ,char *linePointer, i
 	
     /*we need to have space between the command to the parameters
         check if we got undefined directive command, and prints an error if needed */
-    UNDEFINED_DIR_CMD
+    if(*linePointer != ' ') 
+        { 
+            printf("\nError: Undefined directive command. In line: %d", line_counter); 
+            *error = 1; 
+            return; 
+        } 
 
     /*we have space so we need to skip till the parameters */
     skipSpaceTab(linePointer);
@@ -635,7 +809,12 @@ void reading_string_line(head_of_data_lines* data_lines_list ,char *linePointer,
 
 	/*we need to have space between the command to the parameters
         check if we got undefined directive command, and prints an error if needed */
-    UNDEFINED_DIR_CMD
+    if(*linePointer != ' ') 
+        { 
+            printf("\nError: Undefined directive command. In line: %d", line_counter); 
+            *error = 1; 
+            return; 
+        } 
 						
 
 	/*we have space so we need to skip till the parameters */
@@ -783,5 +962,192 @@ void free_data_line_memory(head_of_data_lines* list)
     }
     free(list);
 }
+
+
+
+int valid_label(char *name, int *error, int line_counter)
+{
+    int i=0;
+    int name_length = strlen(name);
+    int not_valid_flag = 0;
+
+    /*checking if the length of the label is valid */
+    if(name_length > LENGTH_LABEL)
+        not_valid_flag =1;
+
+    /*checking if the first letter is not a letter */
+    if( (name[i] < 'a' || name[i] > 'z') && (name[i] < 'A' || name[i] > 'Z' ))
+        not_valid_flag =1;
+    
+    /*checking if the label name is valid (only letters and numbers) */
+    for(i =1; i < name_length-1 ; i++)
+        if((name[i] < 'a' || name[i] > 'z') && (name[i] < 'A' || name[i] > 'Z' ) && (name[i] < '0' || name[i] > '9'))
+            not_valid_flag =1;
+    
+    /*if the label is not valid, print an error. */
+    if(not_valid_flag)
+    {
+        printf("Error: not a valid label in line: %d.", line_counter);
+        *error = 1;
+        return 0;
+    }
+
+    /*the label is valid */
+    return 1;
+}
+
+/*label_exist, checks if there is already a symbol with the same name in our table */
+void label_exist(head_of_symbol_list* list ,char *label_name, int *error, int symbol_type)
+{
+    symbol_table *temp = list->head;
+    enum {EXTERNAL=3 };
+
+    while(temp->next != NULL)
+    {
+       
+
+        if(!strcmp(label_name, temp->symbol) )
+        {
+            
+            if(symbol_type == EXTERNAL)
+                if(!strcmp(temp->attributes , "external"))
+                    return;
+
+            printf("\nError: symbol already exist.");
+            *error = 1;
+            return;
+        }
+
+        
+
+
+
+        temp = temp->next;
+    }
+}
+
+
+int string_is_valid(char *linePointer, int *error, int line_counter){
+    if( (*linePointer < 32 && *linePointer != 9) ||  *linePointer > 126 )
+            {
+                if(*linePointer == '\n' || *linePointer == '\0')
+                    printf("\nError: Missing closing quotation marks in a string command, In line: %d", line_counter);
+                else
+                    printf("\nError: Not a valid ascii char, In line: %d", line_counter);
+                
+                *error=1;
+                return 0;
+            }
+    return 1;
+} 
+
+
+
+char * save_name(char *linePointer)
+{
+	int j;
+	int name_length = 0;
+	char *name=NULL;
+
+	/*count the length of the current word in line*/
+	for(j=0 ; linePointer[j] && linePointer[j] != '\n' && linePointer[j] != ' ' && linePointer[j] != '\t'; j++ )
+	{
+		name_length++;
+	}
+
+	name = (char *)malloc(sizeof(char) * (name_length+1));
+	if(name == NULL)
+	{
+		printf("Error: Memory allocation failed.");
+                exit(0);
+	}
+
+	/*copy the word to a "name" string*/
+	for(j=0; j < name_length ; j++)
+	{
+		name[j] = linePointer[j];
+	}
+	
+	name[j] = '\0';
+	return name;
+}
+
+
+
+int name_check(char *linePointer, char *name, int *lettersCounter)
+{
+	int j=0;
+	*lettersCounter =0;
+	/*count the chars of the word that the pointer points to*/
+	while((linePointer[j] >= 'A' && linePointer[j] <= 'Z') || (linePointer[j] >= 'a' && linePointer[j] <= 'z') || (linePointer[j] >= 0 && linePointer[j] <= 9) || linePointer[j] == '#' || linePointer[j] == '.' )
+	{
+		(*lettersCounter)++;
+		j++;
+	}
+	/*checking if the word is bigger then it should be */
+	if(strlen(name) < (*lettersCounter))
+		return 0;
+	
+	if(strncmp(linePointer, name, strlen(name) ) == 0 )
+	{
+		return 1;
+	}
+	return 0;
+}
+
+
+
+void skipSpaceTab(char *p)
+{
+	while((*p) != '\n')
+	{
+		if((*p) == ' ' || (*p) == '\t')
+		{
+			memmove(p, p+1, strlen(p));
+			continue;
+		}
+		else
+			return;
+	}
+}
+
+
+
+void removeSpace(char *linePointer)
+{
+	int i;
+	int count=0;
+	for(i=0 ; linePointer[i] ; i++)
+	{
+		if(linePointer[i] != ' ' && linePointer[i] != '\t' && linePointer[i] != '\n')
+			linePointer[count++] = linePointer[i];
+	}
+	linePointer[count] = '\0'; /*to finish the string*/
+}
+
+
+
+char *create_new_macro_file(char *oldFileName, char *ending, int originalLength)
+{
+	/*we store the size of the old file name */
+	int oldFileLength = strlen(oldFileName);
+	/*if the size is less then the oldFile we need to delete extra chars from the name of file. */
+	if(originalLength < oldFileLength)
+	{
+		oldFileName[oldFileLength - (oldFileLength - originalLength)] = '\0';
+	}
+	
+	strcat(oldFileName, ending);
+
+	return oldFileName;
+}
+
+
+
+
+
+
+
+
 
 

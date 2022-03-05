@@ -23,6 +23,13 @@
         *error=1; \
         return;
     
+#define EXTRANEOUS_TEXT \
+        if(*linePointer != '\n' && *linePointer != '\0') \
+                {       \
+                        printf("\nError: Extraneous text, In line: %d",line_counter); \
+                        *error = 1; \
+                        return; \
+                }
 
 
 extern symbol_table *symbol_head;
@@ -30,7 +37,7 @@ extern symbol_table *symbol_head;
 
 int valid_label(char *, int *, int);
 
-void label_exist(head_of_symbol_list* ,char *, int *);
+void label_exist(head_of_symbol_list* ,char *, int *,int );
 
 int string_is_valid(char *, int *, int );
 
