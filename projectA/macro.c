@@ -132,7 +132,7 @@ char * save_name(char *linePointer)
 	char *name=NULL;
 
 	/*count the length of the current word in line*/
-	for(j=0 ; linePointer[j] && linePointer[j] != '\n' && linePointer[j] != ' ' && linePointer[j] != '\t'; j++ )
+	for(j=0 ; linePointer[j] && linePointer[j] != '\n' && linePointer[j] != ' ' && linePointer[j] != '\t' && linePointer[j] != ',' ; j++ )
 	{
 		name_length++;
 	}

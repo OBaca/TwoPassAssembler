@@ -9,7 +9,7 @@
 
 /*initialize data counter(DC), and instrcution counter(IC) */
 int DC = 0;
-int IC = 100;
+int TIC = 100; /*temp IC */
 
 
 
@@ -57,7 +57,7 @@ void manage_phaseOne(FILE *fp, head_of_data_lines* data_lines_list, head_of_symb
 
         /*skipping all the first spaces and tabs */
         skipSpaceTab(linePointer);
-
+	
 		/*if its an empty line we skip */
 		if(*linePointer == '\n' || *linePointer == '\0')
 			continue;
@@ -166,7 +166,7 @@ void manage_phaseOne(FILE *fp, head_of_data_lines* data_lines_list, head_of_symb
 	/*!~!~!~!~~!~!~ TEMPORARAY FOR DEBUGGING!!@@!@!@~!~!~@~!~@~ */
 		print_all_symbols(symbol_list);
 		print_data_lines_list(data_lines_list);
-		printf("IC: %d, DC: %d", IC-1, DC);
+		printf("IC: %d, DC: %d", TIC-1, DC);
 
 		
 
@@ -194,21 +194,21 @@ void manage_code_lines(char *linePointer)
 	skipSpaceTab(linePointer);
 
 	if(*linePointer == '\n' || *linePointer == '\0')
-		IC++;
+		TIC++;
 	
         else if(*linePointer == 'r')
         {
-                IC += 2;
+                TIC += 2;
                 skip_chars(linePointer);
         }
 
         else if(*linePointer == '#')
         {
-                IC += 3;
+                TIC += 3;
                 skip_chars(linePointer);
         }
         else{
-                IC+=4;
+                TIC+=4;
                 skip_chars(linePointer);
         }
         skipSpaceTab(linePointer);
@@ -224,11 +224,11 @@ void manage_code_lines(char *linePointer)
        
         if(*linePointer == '#')
         {
-                IC += 1;
+                TIC += 1;
                 skip_chars(linePointer);
         }
         else if(*linePointer != '\n' && *linePointer != '\0' && *linePointer != 'r')
-                IC += 2;
+                TIC += 2;
 
         
 
@@ -329,17 +329,17 @@ void add_label(head_of_symbol_list* symbol_list ,char *label_name, int symbol_ty
     {
         case DATA:
             strcpy(p->attributes, "data");
-			p->value = IC;
-    		p->offset = IC % 16;
-			p->base_address = IC - p->offset;
+			p->value = TIC;
+    		p->offset = TIC % 16;
+			p->base_address = TIC - p->offset;
    			p->next = NULL;
             break;
 
         case CODE:
             strcpy(p->attributes, "code");
-			p->value = IC;
-    		p->offset = IC % 16;
-			p->base_address = IC - p->offset;
+			p->value = TIC;
+    		p->offset = TIC % 16;
+			p->base_address = TIC - p->offset;
    			p->next = NULL;
             break;
 
@@ -477,7 +477,7 @@ void reading_data_line(head_of_data_lines* data_lines_list ,char *linePointer, i
 		
 		add_data_line( data_lines_list , add_data_parameter(x) );
 		is_Empty=0;
-		IC++;
+		TIC++;
 		DC++;
 
     }
@@ -622,14 +622,14 @@ void reading_string_line(head_of_data_lines* data_lines_list ,char *linePointer,
 
 		add_data_line(data_lines_list,add_data_parameter(*linePointer) );
 		
-		IC++;
+		TIC++;
 		DC++;
 
 		linePointer++;
 	}
 
 	add_data_line(data_lines_list,add_data_parameter(0));
-	IC++;
+	TIC++;
 	DC++;
 
 	linePointer++;

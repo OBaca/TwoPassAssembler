@@ -1,22 +1,38 @@
-#include "manage_line2.h"
-#include "data_structure.h"
 #include "constant.h"
+#include "data_structure.h"
+#include "manage_line2.h"
+
+
+line *create_single_line()
+{
+    line *p = (line*)malloc(sizeof(line));
+    if(p==NULL)
+    {
+            printf("\nError: Memory allocation failed.");
+		    exit(0);
+    }
+    p->classify =0;
+    p->signal =0;
+
+    return p;
+}
 
 
 void insert_classify(int classify_type, line *line2)
 {
     switch(classify_type)
     {
-        case 16:
-            line2->signal = line2->signal | (int)pow(2,16);
+        case 1:
+            line2->classify = line2->classify | (int)pow(2,0);
             break;
-        case 17:
-            line2->signal = line2->signal | (int)pow(2,17);
+        case 2:
+            line2->classify = line2->classify | (int)pow(2,1);
             break;
-        case 18:
-            line2->signal = line2->signal |  (int)pow(2,18);
+        case 4:
+            line2->classify = line2->classify |  (int)pow(2,2);
             break;
         default:
+
             break;  
     }
 }
@@ -36,7 +52,7 @@ void insert_funct(int funct_num, line *line2)
         case 12:
             line2->signal = line2->signal |  ((int)pow(2,15) + (int)pow(2,14));
             break;
-        case 3:
+        case 13:
             line2->signal = line2->signal |  ((int)pow(2,15) + (int)pow(2,14) + (int)pow(2,12));
             break;
         default:
@@ -122,3 +138,48 @@ void insert_address(int address_type,int adress_num, line *line2)
             break;
     }
 }
+
+void insert_opcode(int command_number, line *line1)
+{
+    line1->signal = (int)pow(2,command_number);
+}
+
+void print_obj_line(FILE* obFile,line *lineOBJ, int IC)
+{
+    int A=0, B=0, C=0, D=0, E=0;
+    line *temp = (line*)malloc(sizeof(line));
+    char final_line[20];
+
+    A = lineOBJ->classify;
+
+    temp->signal = lineOBJ->signal;  
+
+    B = temp->signal >> 12 & 0xF;
+
+    temp->signal = lineOBJ->signal;
+
+    C = temp->signal >> 8 & 0xF;
+
+    temp->signal = lineOBJ->signal;
+
+    D = temp->signal >> 4 & 0xF;
+
+    temp->signal = lineOBJ->signal;
+
+    E = temp->signal & 0xF;
+
+    printf("\n A= %d, B=%d, C=%d, D=%d, E=%d\n", A,B,C,D,E);
+
+    if(IC <1000)
+        sprintf(final_line, "0%d\tA%x-B%x-C%x-D%x-E%x\n",IC, A, B, C, D, E);
+    else
+        sprintf(final_line, "%d\tA%x-B%x-C%x-D%x-E%x\n",IC, A, B, C, D, E);
+
+    fputs(final_line,obFile);
+
+    free(temp);
+    free(lineOBJ);
+}
+
+
+

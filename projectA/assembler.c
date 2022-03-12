@@ -4,6 +4,7 @@
 #include "phaseOne.h"
 #include "macro.h"
 #include "phaseTwo.h"
+#include "manage_line2.h"
 
 int main(int argc, char *argv[])
 {
