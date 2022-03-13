@@ -23,12 +23,20 @@
         *error=1; \
         return;
     
-#define EXTRANEOUS_TEXT \
+#define EXTRANEOUS_TEXT_RETURN \
         if(*linePointer != '\n' && *linePointer != '\0') \
                 {       \
                         printf("\nError: Extraneous text, In line: %d",line_counter); \
                         *error = 1; \
                         return; \
+                } 
+
+#define EXTRANEOUS_TEXT_CONTINUE \
+        if(*linePointer != '\n' && *linePointer != '\0') \
+                {       \
+                        printf("\nError: Extraneous text, In line: %d",line_counter); \
+                        *error = 1; \
+                        continue;   \
                 }
 
 

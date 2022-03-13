@@ -21,11 +21,16 @@ void macro(char *file, int argv_length)
 	char *point_to_label_name;
 	create_list(); /*creates a linked list */
 
+	
+
 	/*open file named .as and point to it. */
 	fp = get_file(file,argv_length, ".as", "r");
+
+	
 	/*create new file named .am */
 	newfp = get_file(file, argv_length, ".am", "w+");
 
+	
 
 	/*reading through the lines in the file */
 	while(fgets(line,LENGTH_LINE , fp) != NULL)	
@@ -54,7 +59,7 @@ void macro(char *file, int argv_length)
 				
 				/*The current char must be 'm' */
 				/*we check if the word is "macro", if not we will copy the whole line to the new file */
-				if(!( name_check(linePointer, "macro", &lettersCounter) ))
+				if(!( macro_name_check(linePointer, "macro", &lettersCounter) ))
 				{
 					fputs(line, newfp);
 					continue;
@@ -99,7 +104,7 @@ void macro(char *file, int argv_length)
 				lettersCounter = 0;
 				
 				/*check for end of the macro*/
-				if(!( name_check(linePointer, "endm", &lettersCounter) )) 
+				if(!( macro_name_check(linePointer, "endm", &lettersCounter) )) 
 				{
 					/*not the end, save line to the macro table*/
 					strcpy(temp_macro_table[num_of_macro_lines], line);
@@ -118,10 +123,11 @@ void macro(char *file, int argv_length)
 		}		
 		
 	}
-
+	
 	free_memory(); /*free all the memory that have beem allocated */  
 	fclose(fp);
 	fclose(newfp); 
+	
 }
 
 
@@ -155,7 +161,7 @@ char * save_name(char *linePointer)
 
 
 
-int name_check(char *linePointer, char *name, int *lettersCounter)
+int macro_name_check(char *linePointer, char *name, int *lettersCounter)
 {
 	int j=0;
 	*lettersCounter =0;
@@ -270,7 +276,7 @@ void transfer_macro(char line[],  FILE *newfp, int *skip_macro_name)
 	while( curr != NULL )
     {
 	/*checking if the word in the line is one of the macros we have saved */
-    	if(name_check(curr->macro_name, line, &lettersCounter) )
+    	if(macro_name_check(curr->macro_name, line, &lettersCounter) )
     	{
 			*skip_macro_name = 1; /*turning the flag on */
 			/*we transfer the macro lines to the new file */

@@ -8,16 +8,23 @@
 
 int main(int argc, char *argv[])
 {
-    int argv_length = strlen(argv[1]);
+    int argv_length;
+    int i;
+    char *file_name;
 
+    for(i=1; i<argc ; i++)
+    {
+        
+        file_name = (char*)malloc(sizeof(strlen(argv[i])+4));
+        strcpy(file_name, argv[i]);
 
-   
-	macro(argv[1], argv_length);
-    
-
-
-    manage(argv[1], argv_length);
-    
+        argv_length = strlen(file_name);
+	    macro(file_name, argv_length);
+        
+        manage(file_name, argv_length);
+        
+        free(file_name);
+    }
 
 
     
@@ -30,13 +37,14 @@ FILE* get_file(char *file,int argv_length, char *ending, char *permission)
 {
     FILE *fp;
     int current_file_length = strlen(file);
-
+    
     /*open file named .am and point to it. */
-    if(!(fp= fopen(create_new_file(file, ending, current_file_length, argv_length ), permission))){ 
+    if(!(fp= fopen(create_new_file(file, ending, current_file_length, argv_length), permission))){ 
 		printf("\nError: cannot open file name: %s.am\n",file); 
 		exit(0);
 	}
-    
+        
+
     return fp;
 
 }
@@ -50,8 +58,9 @@ char *create_new_file(char *oldFileName, char *ending, int current_file_length, 
 	{
 		oldFileName[current_file_length - (current_file_length - argv_length)] = '\0';
 	}
-	
+
 	strcat(oldFileName, ending);
+
 
     
 	return oldFileName;

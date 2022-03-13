@@ -168,8 +168,6 @@ void print_obj_line(FILE* obFile,line *lineOBJ, int IC)
 
     E = temp->signal & 0xF;
 
-    printf("\n A= %d, B=%d, C=%d, D=%d, E=%d\n", A,B,C,D,E);
-
     if(IC <1000)
         sprintf(final_line, "0%d\tA%x-B%x-C%x-D%x-E%x\n",IC, A, B, C, D, E);
     else

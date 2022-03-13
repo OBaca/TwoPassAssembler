@@ -166,7 +166,7 @@ void manage_phaseOne(FILE *fp, head_of_data_lines* data_lines_list, head_of_symb
 	/*!~!~!~!~~!~!~ TEMPORARAY FOR DEBUGGING!!@@!@!@~!~!~@~!~@~ */
 		print_all_symbols(symbol_list);
 		print_data_lines_list(data_lines_list);
-		printf("IC: %d, DC: %d", TIC-1, DC);
+		
 
 		
 
@@ -245,7 +245,7 @@ void skip_chars(char *linePointer)
 
 
 
-/* we need to check this function !!~!~!~!~!~!~!~!~!~!*/
+
 void add_extern(head_of_symbol_list* symbol_list ,char *linePointer, int symbol_type, int *error, int line_counter)
 {
 	char *point_to_label_name;
@@ -268,7 +268,7 @@ void add_extern(head_of_symbol_list* symbol_list ,char *linePointer, int symbol_
 				skipSpaceTab(linePointer);
 
 				/*check if there is extraneous text in the line and print an error */
-				EXTRANEOUS_TEXT
+				EXTRANEOUS_TEXT_RETURN
 			}
         }
 }
@@ -378,8 +378,6 @@ void add_label(head_of_symbol_list* symbol_list ,char *label_name, int symbol_ty
 
 
 
-/*WE HAVE SIMILAR FUNCTION IN MACRO.C (NAME_CHECK) NEED TO THINK ON SOMETHING IN COMMON ! ! ! ! ! ~~~ ! ~ ! ~ ! */
-/*!#@&!##@$(!*#&(*@!$&*(!#&(!#&(#&&!($())))))) */
 int word_check(char *linePointer, char *name, int *lettersCounter)
 {
 	int j=0;
@@ -635,7 +633,7 @@ void reading_string_line(head_of_data_lines* data_lines_list ,char *linePointer,
 	linePointer++;
 	skipSpaceTab(linePointer);
 	/*check if there is extraneous text in the line and print an error */
-	EXTRANEOUS_TEXT
+	EXTRANEOUS_TEXT_RETURN
 }
 
 

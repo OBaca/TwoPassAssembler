@@ -60,10 +60,11 @@ void manage_phaseTwo(FILE *fp,char *file_name, head_of_data_lines* data_lines_li
         line_counter++;
         lettersCounter=0;
         op1_flag=0;
+        op2_flag=0;
 
            
 
-printf("\n66 Line: %d", line_counter);
+
         /*skipping all the first spaces and tabs */
         skipSpaceTab(linePointer);
         
@@ -121,7 +122,7 @@ printf("\n66 Line: %d", line_counter);
 
             skipSpaceTab(linePointer);
 
-            EXTRANEOUS_TEXT
+            EXTRANEOUS_TEXT_CONTINUE
             
             continue;
         } /*end of .entry check */
@@ -140,7 +141,7 @@ printf("\n66 Line: %d", line_counter);
              linePointer += lettersCounter;
              skipSpaceTab(linePointer);
 
-             EXTRANEOUS_TEXT
+             EXTRANEOUS_TEXT_CONTINUE
 
             final_table[IC] = add_opcode_line(14);
             
@@ -154,7 +155,7 @@ printf("\n66 Line: %d", line_counter);
              linePointer += lettersCounter;
              skipSpaceTab(linePointer);
 
-             EXTRANEOUS_TEXT
+             EXTRANEOUS_TEXT_CONTINUE
 
             final_table[IC] = add_opcode_line(15);
             print_obj_line(obFile,final_table[IC], IC);
@@ -203,8 +204,13 @@ printf("\n66 Line: %d", line_counter);
 
     }
 
-
     print_all_data_lines(obFile, data_lines_list);
+
+    if(IC > LENGTH_DATA)
+    {
+        printf("\nError: You have passed memory size limit. In line: %d", line_counter);
+        *error=1;
+    }
     
     if(*error)
     {
@@ -358,7 +364,7 @@ void read_op2_line(FILE *obFile ,FILE *extFile, head_of_symbol_list *symbol_list
 
     skipSpaceTab(linePointer);
 
-    EXTRANEOUS_TEXT
+    EXTRANEOUS_TEXT_RETURN
 
     /*Analyze first operand to add to line 2 */
     if(operand_name1[0] == 'r' && (indexCommand >=0 && indexCommand <= 3))
@@ -399,7 +405,7 @@ void read_op2_line(FILE *obFile ,FILE *extFile, head_of_symbol_list *symbol_list
         insert_register(SOURCE, registerNum, tempLine);
     }
 
-    else if((operand_name1[0] == '#' && (indexCommand == 4)) || (operand_name1[0] != '#' && indexCommand != 4))
+    else if(((operand_name1[0] == '#' || operand_name1[0] == 'r') && (indexCommand == 4)) || (operand_name1[0] != '#' && indexCommand != 4) || symbol1 == NULL)
     {
         printf("\nError: Illegal operand. In line: %d", line_counter);
         *error = 1;
@@ -676,7 +682,7 @@ void read_op1_line(FILE *obFile ,FILE *extFile, head_of_symbol_list *symbol_list
     skipSpaceTab(linePointer);
 
     /*checking if we have extraneous text then we will print an error */
-    EXTRANEOUS_TEXT
+    EXTRANEOUS_TEXT_RETURN
 
 
     if(operand_name[0] == 'r' &&( (indexCommand >=0 && indexCommand <= 3) || indexCommand == 8 || indexCommand == 9 ))

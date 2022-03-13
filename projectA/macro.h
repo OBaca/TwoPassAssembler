@@ -2,8 +2,8 @@
 /*macro - is a function that recieve .as file and create new .am file with all the assignments of the macros*/
 void macro(char *, int);
 
-/*name_check - is a function that get two string and compare them. return 1 if they match and 0 otherwise*/
-int name_check(char *, char *, int *);
+/*macro_name_check - is a function that get two string and compare them. return 1 if they match and 0 otherwise*/
+int macro_name_check(char *, char *, int *);
 
 /*skipSpaceTab - is a function that skips spaces and tabs in a string*/
 void skipSpaceTab(char *);
