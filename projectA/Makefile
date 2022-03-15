@@ -1,6 +1,6 @@
-FLAGS.C = gcc -c -Wall -ansi -pedantic
+FLAGS.C = gcc -c -Wall -ansi -pedantic 
 
-FLAGS.G = gcc -g -Wall -ansi -pedantic
+FLAGS.G = gcc -g -Wall -ansi -pedantic 
 
 OBJECTS = assembler.o macro.o phaseOne.o phaseTwo.o manage_line2.o errors.o
 

@@ -149,7 +149,7 @@ void print_obj_line(FILE* obFile,line *lineOBJ, int IC)
     int A=0, B=0, C=0, D=0, E=0;
     line *temp = (line*)malloc(sizeof(line));
     char final_line[20];
-
+	printf("\n INSIDE!@");
     A = lineOBJ->classify;
 
     temp->signal = lineOBJ->signal;  

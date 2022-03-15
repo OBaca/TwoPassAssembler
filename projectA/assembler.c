@@ -15,15 +15,14 @@ int main(int argc, char *argv[])
     for(i=1; i<argc ; i++)
     {
         
-        file_name = (char*)malloc(sizeof(strlen(argv[i])+4));
-        strcpy(file_name, argv[i]);
-
+        file_name = argv[i];
+	
         argv_length = strlen(file_name);
-	    macro(file_name, argv_length);
+
+	macro(file_name, argv_length);
         
         manage(file_name, argv_length);
-        
-        free(file_name);
+       
     }
 
 
@@ -33,37 +32,60 @@ int main(int argc, char *argv[])
 
 
 
-FILE* get_file(char *file,int argv_length, char *ending, char *permission)
+FILE *file_open(char *fileName, char *fileType, int amType)
 {
-    FILE *fp;
-    int current_file_length = strlen(file);
-    
-    /*open file named .am and point to it. */
-    if(!(fp= fopen(create_new_file(file, ending, current_file_length, argv_length), permission))){ 
-		printf("\nError: cannot open file name: %s.am\n",file); 
-		exit(0);
-	}
-        
+    FILE *filePointer;
+    char fileState[3] = "r";
+    char workingfile[255];
 
-    return fp;
-
-}
-
-char *create_new_file(char *oldFileName, char *ending, int current_file_length, int argv_length)
-{
+    if (strcmp(fileType, "am") == 0)
+    {
+        sprintf(workingfile, "%s.%s", fileName, "am"); /* builds the filename for the fopen */
+		if(amType)
+        	strcpy(fileState, "w+");
+		else
+			strcpy(fileState, "r");
 	
-    
-	/*if the size is less then the oldFile we need to delete extra chars from the name of file. */
-	if(current_file_length > argv_length)
+        filePointer = fopen(workingfile, fileState);
+    }
+
+	else if(strcmp(fileType, "as") == 0)
 	{
-		oldFileName[current_file_length - (current_file_length - argv_length)] = '\0';
+		sprintf(workingfile, "%s.%s", fileName, "as"); /* builds the filename for the fopen */
+
+        strcpy(fileState, "r");
+
+        filePointer = fopen(workingfile, fileState);
 	}
 
-	strcat(oldFileName, ending);
+    else if (strcmp(fileType, "ob") == 0)
+    {
+        sprintf(workingfile, "%s.%s", fileName, "ob"); /* builds the filename for the fopen */
 
+        strcpy(fileState, "w");
 
-    
-	return oldFileName;
+        filePointer = fopen(workingfile, fileState);
+    }
+
+    else if (strcmp(fileType, "ent") == 0)
+    {
+        sprintf(workingfile, "%s.%s", fileName, "ent"); /* builds the filename for the fopen */
+
+        strcpy(fileState, "w");
+
+        filePointer = fopen(workingfile, fileState);
+    }
+
+    else if (strcmp(fileType, "ext") == 0)
+    {
+        sprintf(workingfile, "%s.%s", fileName, "ext"); /* builds the filename for the fopen */
+
+        strcpy(fileState, "w");
+
+        filePointer = fopen(workingfile, fileState);
+    }
+
+    return filePointer;
 }
 
 void manage(char* file_name, int argv_length)
@@ -71,13 +93,14 @@ void manage(char* file_name, int argv_length)
     FILE *fp;
 	head_of_data_lines *data_lines_list = NULL;
 	head_of_symbol_list *symbol_list = NULL;
+	char file_name_remove[255];
 	int error=0; /*flag to know if there was an error in the program */
 
     symbol_list = create_symbol_head();
 
 	data_lines_list = create_data_list();
 
-    fp = get_file(file_name, argv_length, ".am", "r");
+    fp = file_open(file_name, "am",0);
 	
 
     manage_phaseOne(fp, data_lines_list, symbol_list, &error);
@@ -86,10 +109,22 @@ void manage(char* file_name, int argv_length)
 
 	fp=NULL;
     
-    fp = get_file(file_name, argv_length, ".am", "r");
+    fp = file_open(file_name, "am",0);
 	manage_phaseTwo(fp,file_name, data_lines_list, symbol_list, &error, argv_length );
 
-
+	
+	if(error)
+    {
+		sprintf(file_name_remove, "%s.%s", file_name, "ent"); /* builds the filename for the fopen */
+		remove(file_name_remove);
+       	sprintf(file_name_remove, "%s.%s", file_name, "ob"); /* builds the filename for the fopen */
+		remove(file_name_remove);
+		sprintf(file_name_remove, "%s.%s", file_name, "ext"); /* builds the filename for the fopen */
+		remove(file_name_remove);
+        
+        
+        /* remove AM check MAYBE */
+    }
 	/*free all the memory in symbol and data list */
 	free_symbol_table_memory(symbol_list);
 	free_data_line_memory(data_lines_list);

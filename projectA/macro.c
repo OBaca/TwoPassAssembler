@@ -24,12 +24,22 @@ void macro(char *file, int argv_length)
 	
 
 	/*open file named .as and point to it. */
-	fp = get_file(file,argv_length, ".as", "r");
-
+	fp = file_open(file, "as",0);
+	if(fp==NULL)
+	{
+		printf("\n@@END");
+		exit(0);	
+	
+	}
 	
 	/*create new file named .am */
-	newfp = get_file(file, argv_length, ".am", "w+");
-
+	newfp = file_open(file, "am",1);
+	if(newfp==NULL)
+	{
+		printf("\n$$END");
+		exit(0);	
+	
+	}
 	
 
 	/*reading through the lines in the file */
@@ -53,6 +63,7 @@ void macro(char *file, int argv_length)
 				/*if the next char is not the beginning of "macro" we will copy the whole line to the new file  */
 				if(*(linePointer) != 'm')
 				{
+					printf("\nprint in macro");
 					fputs(line, newfp);
 					continue;
 				}

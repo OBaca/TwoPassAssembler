@@ -32,23 +32,15 @@ void manage_phaseTwo(FILE *fp,char *file_name, head_of_data_lines* data_lines_li
     FILE *entFile; 
     FILE *obFile;
     FILE *extFile;
-    char *ent_file_name = (char*)malloc(sizeof(char)*(argv_length+4));
-    char *ob_file_name = (char*)malloc(sizeof(char)*(argv_length+3));
-    char *ext_file_name = (char*)malloc(sizeof(char)*(argv_length+4));
+    
     int index=0;
     int op1_flag=0, op2_flag=0;
     char top_ob_line[15];
-    
-
-    
-    strcpy(ent_file_name, file_name);
-    strcpy(ob_file_name, file_name);
-    strcpy(ext_file_name, file_name);
 
 
-    entFile = get_file(ent_file_name, argv_length, ".ent", "w+"); 
-    obFile = get_file(ob_file_name, argv_length, ".ob", "w+"); 
-    extFile = get_file(ext_file_name, argv_length, ".ext", "w+");
+    entFile = file_open(file_name, "ent",0);
+    obFile = file_open(file_name, "ob",0); 
+    extFile = file_open(file_name, "ext",0);
 
     
     sprintf(top_ob_line, "\t\t\t%i\t%i\n",TIC-DC, DC);
@@ -116,7 +108,7 @@ void manage_phaseTwo(FILE *fp,char *file_name, head_of_data_lines* data_lines_li
             {
                 strcpy(label_name, point_to_label_name );
                 free(point_to_label_name);
-                create_entry_file(entFile,ent_file_name, symbol_list, label_name, error, line_counter);
+                create_entry_file(entFile, symbol_list, label_name, error, line_counter);
                 linePointer += strlen(label_name) +1;
             }
 
@@ -212,16 +204,10 @@ void manage_phaseTwo(FILE *fp,char *file_name, head_of_data_lines* data_lines_li
         *error=1;
     }
     
-    if(*error)
-    {
-        remove(ob_file_name);
-        remove(ent_file_name);
-        remove(ext_file_name);
-        /* remove AM check MAYBE */
-    }
+    
     
 
-    free_files_names(ob_file_name,ent_file_name, ext_file_name);
+    
     fclose(fp);
 
 
@@ -931,7 +917,7 @@ line *add_opcode_line(int x)
 
 
 
-void create_entry_file(FILE *entFile, char *file_name, head_of_symbol_list* symbol_list ,char *label_name, int *error, int line_counter)
+void create_entry_file(FILE *entFile,  head_of_symbol_list* symbol_list ,char *label_name, int *error, int line_counter)
 {
     symbol_table *temp = symbol_list->head;
     
