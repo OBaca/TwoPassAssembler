@@ -7,8 +7,7 @@
 #include "assembler.h"
 #include "phaseTwo.h"
 
-#define LENGTH_OP1 9
-#define LENGTH_OP2 5
+
 
 extern int DC;
 extern int TIC;
@@ -38,9 +37,9 @@ void manage_phaseTwo(FILE *fp,char *file_name, head_of_data_lines* data_lines_li
     char top_ob_line[15];
 
 
-    entFile = file_open(file_name, "ent",0);
-    obFile = file_open(file_name, "ob",0); 
-    extFile = file_open(file_name, "ext",0);
+    entFile = file_open(file_name, "ent",READ_ONLY);
+    obFile = file_open(file_name, "ob",READ_ONLY); 
+    extFile = file_open(file_name, "ext",READ_ONLY);
 
     
     sprintf(top_ob_line, "\t\t\t%i\t%i\n",TIC-DC, DC);
@@ -87,6 +86,7 @@ void manage_phaseTwo(FILE *fp,char *file_name, head_of_data_lines* data_lines_li
         /*if there is an .entry directive command we will check if its valid and add the entries lines to the .ent file */
         if(word_check(linePointer, ".entry", &lettersCounter) )
         {
+            
             linePointer += lettersCounter;
 
             UNDEFINED_DIR_CMD

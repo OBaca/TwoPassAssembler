@@ -29,10 +29,10 @@ typedef struct line
 	unsigned int signal:16;	
 }line;
 
-typedef struct head_of_list
+typedef struct head_of_macro_list
 {
         macro_table *head;
-}head_of_list;
+}head_of_macro_list;
 
 typedef struct head_of_symbol_list
 {
@@ -52,7 +52,7 @@ typedef struct head_of_data_lines
 
 
 /*create_list, creates a linked list */
-void create_list();
+head_of_macro_list *create_list(head_of_macro_list*);
 
 /*add_data_parameter, adding a data line node */
 line *add_data_parameter(int );
@@ -61,7 +61,18 @@ head_of_symbol_list *create_symbol_head();
 
 void free_symbol_table_memory(head_of_symbol_list* );
 
+void free_data_line_memory(head_of_data_lines* );
 
 head_of_data_lines *create_data_list();
+
 void add_data_line(head_of_data_lines*  , line *);
-void free_data_line_memory(head_of_data_lines* );
+
+/*free the memory that have been allocated */
+void free_macro_list(head_of_macro_list*);
+
+/*add_node - is a function that insert a node(macro struct) to the end of the list*/
+void add_node(head_of_macro_list*,char* name, char macro_table[6][81], int );
+
+
+/*add_label, adding a label to the symbol table with his values */
+void add_label(head_of_symbol_list* ,char *, int , int TIC);

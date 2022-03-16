@@ -1,18 +1,10 @@
 /* macros */
-#define UNDEFINED_DIR_CMD \
-    if(*linePointer != ' ' && *linePointer != '\t') \
-        { \
-            printf("\nError: Undefined directive command. In line: %d", line_counter); \
-            *error = 1; \
-            return; \
-        } 
 
 #define ILLEGAL_COMMA \
         printf("\nError: Illegal comma. In line: %d", line_counter); \
         *error = 1; \
         return; 
     
-
 #define ILLEGAL_PARAM \
         printf("\nError: Illegal parameter. In line: %d", line_counter); \
         *error = 1; \
@@ -22,22 +14,34 @@
         printf("\nError: Multiple consecutive commas. In line: %d", line_counter); \
         *error=1; \
         return;
+
+#define MEMORY_ALLOCATION_FAIL \
+        printf("\nError: Memory allocation failed."); \
+	exit(0);
     
 #define EXTRANEOUS_TEXT_RETURN \
         if(*linePointer != '\n' && *linePointer != '\0') \
-                {       \
-                        printf("\nError: Extraneous text, In line: %d",line_counter); \
-                        *error = 1; \
-                        return; \
-                } 
+        {       \
+                printf("\nError: Extraneous text, In line: %d",line_counter); \
+                *error = 1; \
+                return; \
+        } 
 
 #define EXTRANEOUS_TEXT_CONTINUE \
         if(*linePointer != '\n' && *linePointer != '\0') \
-                {       \
-                        printf("\nError: Extraneous text, In line: %d",line_counter); \
-                        *error = 1; \
-                        continue;   \
-                }
+        {  \
+                printf("\nError: Extraneous text, In line: %d",line_counter); \
+                *error = 1; \
+                continue;   \
+        }
+
+#define UNDEFINED_DIR_CMD \
+        if(*linePointer != ' ' && *linePointer != '\t') \
+        { \
+                printf("\nError: Undefined directive command. In line: %d", line_counter); \
+                *error = 1; \
+                return; \
+        } 
 
 
 extern symbol_table *symbol_head;

@@ -2,7 +2,7 @@ FLAGS.C = gcc -c -Wall -ansi -pedantic
 
 FLAGS.G = gcc -g -Wall -ansi -pedantic 
 
-OBJECTS = assembler.o macro.o phaseOne.o phaseTwo.o manage_line2.o errors.o
+OBJECTS = assembler.o macro.o phaseOne.o phaseTwo.o manage_line2.o errors.o data_structure.o
 
 HEADERS = constant.h macro.h phaseOne.h phaseTwo.h manage_line2.h errors.h data_structure.h assembler.h
 
@@ -11,6 +11,9 @@ assembler: $(OBJECTS)
 
 assembler.o: assembler.c $(HEADERS)
 	$(FLAGS.C) assembler.c -o assembler.o
+
+data_structure.o: data_structure.c $(HEADERS)
+	$(FLAGS.C) data_structure.c -o data_structure.o
 
 macro.o: macro.c $(HEADERS)
 	$(FLAGS.C) macro.c -o macro.o

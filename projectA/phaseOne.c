@@ -7,53 +7,32 @@
 #include "assembler.h"
 
 
-/*initialize data counter(DC), and instrcution counter(IC) */
+/* initialize data counter(DC), and temp instrcution counter(TIC) */
 int DC = 0;
 int TIC = 100; /*temp IC */
 
 
-
-
-enum {DATA, CODE, ENTRY, EXTERNAL};
-enum {SOURCE, DEST};
-enum {A=4, R=2, E=1};
-
-
-
-void manage_phaseOne(FILE *fp, head_of_data_lines* data_lines_list, head_of_symbol_list *symbol_list, int *error)
-{
-    char *linePointer=NULL;
-    char line[LENGTH_LINE];
-    
-    int label_flag = 0; /*to indicate if there is a label */
-    char label_name[LENGTH_LABEL];
+void manage_phaseOne(FILE *fp, head_of_data_lines* data_lines_list, head_of_symbol_list *symbol_list, int *error, int *external_flag, int *entry_flag)
+{ 
+	char *linePointer=NULL;
 	char *point_to_label_name=NULL;
-    int line_counter=0;
-    int lettersCounter=0;
-    int symbol_type=0;
-	int data_flag = 0;
-
-    
+    char line[LENGTH_LINE]; 
+	char label_name[LENGTH_LABEL];
+    int label_flag = 0; /*to indicate if there is a label */
+    int line_counter=0; 
+    int lettersCounter=0; /*to count the letters to update the line pointer  */
+    int symbol_type=0; /* to know what type is the symbol ( code / data / external / entry ) */
+	int directive_flag = 0; /* flag to know if there is directive command */
 
     
     while(fgets(line, LENGTH_LINE, fp) != NULL)
     {
+		
         label_flag=0;
-		data_flag = 0;
+		directive_flag = 0;
         line_counter++;
         linePointer = line;
 		point_to_label_name=NULL;
-
-       
-        if(*linePointer == EOF){
-            if(*error)
-                exit(0);
-
-            /*algorithem move to 17. */
-
-
-        }
-		
 
         /*skipping all the first spaces and tabs */
         skipSpaceTab(linePointer);
@@ -65,69 +44,59 @@ void manage_phaseOne(FILE *fp, head_of_data_lines* data_lines_list, head_of_symb
         /*check if we got a comment */
         COMMENT_CHECK
 
-		
-
         /*if there is a label we turn the label_flag on and save his name */
         point_to_label_name = is_label(linePointer, &label_flag, error, line_counter);
 
-		
-		
         if(point_to_label_name !=NULL)
         {
             strcpy(label_name, point_to_label_name );
             free(point_to_label_name);
-			linePointer += strlen(label_name) +1;
+			linePointer += strlen(label_name) +1; /* updating the line pointer */
         }
-        
-            
-            
-		
-
+             
         if(label_flag)
             skipSpaceTab(linePointer);
 
 		if(*linePointer == '.')
-			data_flag = 1;
+			directive_flag = 1;
 		
+		/*check if the command is data or a string directive. */
         if(word_check(linePointer, ".data", &lettersCounter) || word_check(linePointer, ".string", &lettersCounter))
         {
-            
             symbol_type = DATA;
-
 			
             if(label_flag)
             {
-                if(symbol_list != NULL && symbol_list->head != NULL)
-                    label_exist(symbol_list ,label_name  ,error, symbol_type);
+                if(symbol_list != NULL && symbol_list->head != NULL) 
+                    label_exist(symbol_list ,label_name  ,error, symbol_type); /*check that there is not two labels with the same name */
 
-                add_label(symbol_list ,label_name, symbol_type);
-                
+                add_label(symbol_list ,label_name, symbol_type, TIC); /* adding the label to the linked list */ 
             }
 			
-            
-            if(word_check(linePointer, ".data", &lettersCounter) ){
-				
+            /* if the command is a .data we save his data in a data linked list */
+            if(word_check(linePointer, ".data", &lettersCounter) )
+			{	
                 linePointer += lettersCounter; /*updating the pointer */
                 reading_data_line(data_lines_list ,linePointer, error, line_counter);
             }
-            else{
-				
+            else	/* else this is a string command so we save his values  */
+			{ 
                 linePointer += lettersCounter; /*updating the pointer */
                 reading_string_line(data_lines_list,linePointer, error, line_counter);
             }
-						
-
             continue;
         }
 
-					
 		
 		if(word_check(linePointer, ".entry", &lettersCounter) )
+		{
+			*entry_flag=1; /*we turn the flag on so we can create an entry file */
 			continue;
-		
+		}
 	
         if(word_check(linePointer, ".extern", &lettersCounter))
         {
+			*external_flag=1;	/*we turn the flag on so we can create an external file */
             linePointer += lettersCounter;
             symbol_type = EXTERNAL;
 
@@ -136,7 +105,7 @@ void manage_phaseOne(FILE *fp, head_of_data_lines* data_lines_list, head_of_symb
             continue;
         }
 
-		if(data_flag)
+		if(directive_flag)
 		{
 			printf("\nError: Undefined directive command. In line: %d", line_counter); 
             *error = 1; 
@@ -151,63 +120,38 @@ void manage_phaseOne(FILE *fp, head_of_data_lines* data_lines_list, head_of_symb
             if(symbol_list != NULL && symbol_list->head != NULL)
                 label_exist(symbol_list ,label_name  ,error, symbol_type);
 
-            add_label(symbol_list ,label_name, symbol_type);
-            
+            add_label(symbol_list ,label_name, symbol_type, TIC);   
         } 
 			
 		skipSpaceTab(linePointer);
 		
-		manage_code_lines(linePointer);
-		
-                
+		manage_code_lines(linePointer);      
     }
 
 	fclose(fp);
-	/*!~!~!~!~~!~!~ TEMPORARAY FOR DEBUGGING!!@@!@!@~!~!~@~!~@~ */
-		print_all_symbols(symbol_list);
-		print_data_lines_list(data_lines_list);
-		
-
-		
-
 }
 
-/*DELETE IT - FOR DEVBUGGING213~@!@~!@#$@#~!!~#!@ */
-void print_data_lines_list(head_of_data_lines* list)
-{
-	data_lines* p;
-	p= list->head;
-	while(p != NULL)
-	{
-		printf("\n%u\n", p->data->signal);
-		p=p->next;
-	}
-}
-/*DELETE UP!!!! */
 
 void manage_code_lines(char *linePointer)
 {
-        
-
 	skip_chars(linePointer);
 
 	skipSpaceTab(linePointer);
 
 	if(*linePointer == '\n' || *linePointer == '\0')
 		TIC++;
-	
-        else if(*linePointer == 'r')
+        else if(*linePointer == 'r') /* type of operand is a register, no extra lines needed, only the first two */
         {
                 TIC += 2;
                 skip_chars(linePointer);
         }
 
-        else if(*linePointer == '#')
+        else if(*linePointer == '#') /* type of operand is a number, one extra line needed (number in binary) */
         {
                 TIC += 3;
                 skip_chars(linePointer);
         }
-        else{
+        else{	/* type of operand is a label, two extra line needed (base,offset) */
                 TIC+=4;
                 skip_chars(linePointer);
         }
@@ -221,7 +165,6 @@ void manage_code_lines(char *linePointer)
         
         skipSpaceTab(linePointer);
 
-       
         if(*linePointer == '#')
         {
                 TIC += 1;
@@ -229,10 +172,9 @@ void manage_code_lines(char *linePointer)
         }
         else if(*linePointer != '\n' && *linePointer != '\0' && *linePointer != 'r')
                 TIC += 2;
-
-        
-
 }
+
+
 
 void skip_chars(char *linePointer)
 {
@@ -245,7 +187,6 @@ void skip_chars(char *linePointer)
 
 
 
-
 void add_extern(head_of_symbol_list* symbol_list ,char *linePointer, int symbol_type, int *error, int line_counter)
 {
 	char *point_to_label_name;
@@ -253,40 +194,25 @@ void add_extern(head_of_symbol_list* symbol_list ,char *linePointer, int symbol_
 	skipSpaceTab(linePointer);
 	point_to_label_name = save_name(linePointer);
 
-		
-        if(point_to_label_name !=NULL)
-        {
-			if(valid_label(point_to_label_name,error,line_counter))
-			{
-				if(symbol_list != NULL && symbol_list->head != NULL)
-					label_exist(symbol_list, point_to_label_name, error, symbol_type);
-
-				add_label(symbol_list, point_to_label_name, symbol_type);
-				linePointer += strlen(point_to_label_name);
-				free(point_to_label_name);
-
-				skipSpaceTab(linePointer);
-
-				/*check if there is extraneous text in the line and print an error */
-				EXTRANEOUS_TEXT_RETURN
-			}
-        }
-}
-
-
-
-void remove_end_white_chars(char *linePointer)
-{
-    int last_char=0;
-    int i;
-    for(i=0 ; linePointer[i] ; i++)
+    if(point_to_label_name !=NULL)
     {
-        if(linePointer[i] != ' ' && linePointer[i] != '\t' && linePointer[i] != '\n')
-            last_char = i;
-    }
+		if(valid_label(point_to_label_name,error,line_counter))
+		{
+			if(symbol_list != NULL && symbol_list->head != NULL)
+				label_exist(symbol_list, point_to_label_name, error, symbol_type);
 
-    linePointer[last_char +1] = '\0';
+			add_label(symbol_list, point_to_label_name, symbol_type, TIC);
+			linePointer += strlen(point_to_label_name);
+			free(point_to_label_name);
+
+			skipSpaceTab(linePointer);
+
+			/*check if there is extraneous text in the line and print an error */
+			EXTRANEOUS_TEXT_RETURN
+		}
+    }
 }
+
 
 
 char *is_label(char *linePointer, int *label_flag, int *error, int line_counter)
@@ -304,76 +230,10 @@ char *is_label(char *linePointer, int *label_flag, int *error, int line_counter)
             *label_flag = 1;
             name[length_name - 1] = '\0';
             return name;
-            
         }
-
     }
     free(name);
     return NULL;
-}
-
-void add_label(head_of_symbol_list* symbol_list ,char *label_name, int symbol_type)
-{
-    symbol_table *p = (symbol_table*)malloc(sizeof(symbol_table));
-	symbol_table* temp;
-
-    if(p==NULL)
-    {
-        printf("\nError: Memory allocation failed.");
-		exit(0);
-    }
-	/*copying the information to the symbol node */
-    strcpy (p->symbol , label_name);
-
-    switch(symbol_type)
-    {
-        case DATA:
-            strcpy(p->attributes, "data");
-			p->value = TIC;
-    		p->offset = TIC % 16;
-			p->base_address = TIC - p->offset;
-   			p->next = NULL;
-            break;
-
-        case CODE:
-            strcpy(p->attributes, "code");
-			p->value = TIC;
-    		p->offset = TIC % 16;
-			p->base_address = TIC - p->offset;
-   			p->next = NULL;
-            break;
-
-        case ENTRY:
-            strcpy(p->attributes, ", entry");
-            break;
-
-        case EXTERNAL:
-            strcpy(p->attributes, "external");
-			p->value = 0;
-			p->offset = 0;
-			p->base_address = 0;
-			p->next = NULL;
-            break;
-
-        default: 
-            break;
-    }
-    
-    
-
-	/*adding the node to the linked symbol_list */
-    	if(symbol_list->head == NULL)
-    	{
-        	symbol_list->head = p;
-        	return;
-    	}
-    	else
-    	{
-        	temp = symbol_list->head;
-        	while(temp->next != NULL)
-            	temp = temp->next;
-        	temp->next = p;
-    	}
 }
 
 
@@ -405,11 +265,10 @@ void reading_data_line(head_of_data_lines* data_lines_list ,char *linePointer, i
 {
 	int lettersCounter = 0;
 	int x=0;
-	int errorInInt=0;
-	int commaFlag =0;
-	int is_Empty = 1;
+	int errorInInt=0; /* flag to know if there was an error in the function intCheck */
+	int commaFlag =0; /* flag to know if there was multiple commas between values */
+	int is_Empty = 1; /* flag to know if no values in a data line */
 
-	
     /*we need to have space between the command to the parameters
         check if we got undefined directive command, and prints an error if needed */
     UNDEFINED_DIR_CMD
@@ -473,11 +332,10 @@ void reading_data_line(head_of_data_lines* data_lines_list ,char *linePointer, i
 			}
 		}
 		
-		add_data_line( data_lines_list , add_data_parameter(x) );
+		add_data_line( data_lines_list , add_data_parameter(x) ); /* adding the data line to the linked data list */
 		is_Empty=0;
 		TIC++;
 		DC++;
-
     }
 
 	if(is_Empty)
@@ -553,6 +411,7 @@ char *createIntChar(char *linePointer, int numberLength)
 	return str;
 }
 
+
 int countNum(char *linePointer)
 {
 	int counter =0; /*counter to count the length of the number */
@@ -577,28 +436,14 @@ int countNum(char *linePointer)
 	return counter;
 }
 
-line *add_data_parameter(int x)
-{
-	line *p = (line*)malloc(sizeof(line));
-
-	p->classify = A;
-	p->signal = x;
-
-	return p;
-}
-
 
 
 void reading_string_line(head_of_data_lines* data_lines_list ,char *linePointer, int *error, int line_counter)
 {
-    
-			
-
 	/*we need to have space between the command to the parameters
         check if we got undefined directive command, and prints an error if needed */
     UNDEFINED_DIR_CMD
 						
-
 	/*we have space so we need to skip till the parameters */
     skipSpaceTab(linePointer);
 
@@ -608,9 +453,7 @@ void reading_string_line(head_of_data_lines* data_lines_list ,char *linePointer,
 		printf("\nError: Illegal string, In line: %d.", line_counter);
 		*error = 1;
 		return;
-	}
-
-				
+	}		
 
 	linePointer++;
 
@@ -635,82 +478,6 @@ void reading_string_line(head_of_data_lines* data_lines_list ,char *linePointer,
 	/*check if there is extraneous text in the line and print an error */
 	EXTRANEOUS_TEXT_RETURN
 }
-
-
-
-
-/*~!~!~!~!~ for DEBUGGING please delete it LATER ~!~!~!~!~!~!~~!~!~!~!~!~!~ ~!~!~!~!~!~!~ ~!~!~!~!~!~!~ ~!~!~!~!~!~!~  */
-void print_all_symbols(head_of_symbol_list* list)
-{
-    symbol_table *p;
-    
-    p = list->head;
-    while(p!= NULL)
-    {
-        printf("\nSymbolName: %s\nSymbol_base: %d\nSymbol_offset: %d\nSymbol_value: %d\n", p->symbol, p->base_address, p->offset,p->value);
-        p=p->next;
-    }
-}
-
-
-/* !~!~!~!~!~!~~!~!~!~!~!~!~ ~!~!~!~!~!~!~ ~!~!~!~!~!~!~ ~!~!~!~!~!~!~ !~!~!~!~!~!~~!~!~!~!~!~!~ ~!~!~!~!~!~!~ ~!~!~!~!~!~!~ ~!~!~!~!~!~!~ */
-
-
-head_of_symbol_list *create_symbol_head()
- {
-     head_of_symbol_list *list = (head_of_symbol_list*)malloc(sizeof(head_of_symbol_list));
-     if(list == NULL)
-     {
-        printf("\nError: Memory allocation failed.");
-		exit(0);
-     }
-     list->head = NULL;
-     return list;
- }
-
-
-
-head_of_data_lines *create_data_list()
-{
-        head_of_data_lines *list = (head_of_data_lines*)malloc(sizeof(head_of_data_lines));
-        if(list == NULL)
-        {
-                printf("\nError: Memory allocation failed.");
-		exit(0);
-        }
-        list->head = NULL;
-        return list;
-}
-
-void add_data_line(head_of_data_lines* data_lines_list , line *data_line)
-{
-        data_lines *p = (data_lines*)malloc(sizeof(data_lines));
-	data_lines* temp;
-
-        if(p==NULL)
-        {
-                printf("\nError: Memory allocation failed.");
-		exit(0);
-        }
-
-        p->data = data_line;
-        p->next = NULL;
-
-        if(data_lines_list->head == NULL)
-    	{
-        	data_lines_list->head = p;
-        	return;
-    	}
-    	else
-    	{
-        	temp = data_lines_list->head;
-        	while(temp->next != NULL)
-            	        temp = temp->next;
-        	temp->next = p;
-    	}
-}
-
-
 
 
 
