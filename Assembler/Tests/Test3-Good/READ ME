@@ -1,0 +1,3 @@
+This is a test that gets the assembler lines from the project example but we got more macros
+- this test is to check that the .am file is correct
+Good test ( no errors should appear in this test )
